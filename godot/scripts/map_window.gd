@@ -81,9 +81,8 @@ func _build_ui() -> void:
 	if map_node == null:
 		push_error("failed to instantiate MapLibreMap")
 		return
-	map_node.custom_minimum_size = Vector2(800, 540)
 	map_node.expand_mode  = TextureRect.EXPAND_IGNORE_SIZE
-	map_node.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	map_node.stretch_mode = TextureRect.STRETCH_SCALE
 	map_node.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	map_node.size_flags_vertical   = Control.SIZE_EXPAND_FILL
 	root.add_child(map_node)

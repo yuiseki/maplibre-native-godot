@@ -127,7 +127,10 @@ String MapLibreMap::get_runtime_description() const {
 void MapLibreMap::_notification(int p_what) {
     if (p_what == Node::NOTIFICATION_READY) {
         UtilityFunctions::print("MapLibreMap: initializing headless renderer (Continuous mode)");
-        runtime_ = std::make_unique<maplibre_godot::MapRuntime>(512, 512, 1.0f);
+        const Vector2 sz = get_size();
+        render_width_  = sz.x > 0 ? static_cast<uint32_t>(sz.x) : 512;
+        render_height_ = sz.y > 0 ? static_cast<uint32_t>(sz.y) : 512;
+        runtime_ = std::make_unique<maplibre_godot::MapRuntime>(render_width_, render_height_, 1.0f);
         runtime_->set_style_url(std::string(style_url.utf8().get_data()));
         runtime_->jump_to(current_lat, current_lon, current_zoom,
                           current_bearing, current_pitch);
@@ -137,6 +140,16 @@ void MapLibreMap::_notification(int p_what) {
     }
 
     if (p_what == Node::NOTIFICATION_PROCESS) {
+        // Resize the renderer if the node's display size has changed.
+        const Vector2 sz = get_size();
+        const uint32_t w = sz.x > 0 ? static_cast<uint32_t>(sz.x) : render_width_;
+        const uint32_t h = sz.y > 0 ? static_cast<uint32_t>(sz.y) : render_height_;
+        if (w != render_width_ || h != render_height_) {
+            render_width_  = w;
+            render_height_ = h;
+            runtime_->resize(w, h);
+        }
+
         using Clock = std::chrono::steady_clock;
         const auto t0 = Clock::now();
 
@@ -174,8 +187,11 @@ void MapLibreMap::_notification(int p_what) {
         }
 
         // Reuse the existing ImageTexture to avoid per-frame reallocation.
+        // If dimensions changed (after a resize), create a new texture.
         Ref<ImageTexture> tex = get_texture();
-        if (tex.is_valid()) {
+        if (tex.is_valid() &&
+            tex->get_width()  == static_cast<int32_t>(result.width) &&
+            tex->get_height() == static_cast<int32_t>(result.height)) {
             tex->update(image);
         } else {
             set_texture(ImageTexture::create_from_image(image));

@@ -245,6 +245,7 @@ void MapRuntime::fly_to(double lat, double lon, double zoom) {
 
 void MapRuntime::resize(uint32_t w, uint32_t h) {
     impl_->frontend.setSize(mbgl::Size{w, h});
+    impl_->map.setSize(mbgl::Size{w, h});
 }
 
 } // namespace maplibre_godot

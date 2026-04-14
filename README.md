@@ -5,7 +5,7 @@ into a [Godot 4](https://godotengine.org/) project.
 
 > **Status:** Working on Linux and Windows.
 
-[![Screenshot](https://i.gyazo.com/d4d73415fed09db3ff4776cf0b74ad6e.png)](https://gyazo.com/d4d73415fed09db3ff4776cf0b74ad6e)
+[![Screenshot](https://i.gyazo.com/dfd10904d4c9258bba6843d3c2a8b305.png)](https://gyazo.com/dfd10904d4c9258bba6843d3c2a8b305)
 
 ![demo](docs/demo.gif)
 

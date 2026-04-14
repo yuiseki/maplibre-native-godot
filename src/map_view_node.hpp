@@ -53,6 +53,8 @@ private:
     // Persistent headless renderer — initialized in NOTIFICATION_READY.
     std::unique_ptr<maplibre_godot::MapRuntime> runtime_;
     int64_t last_render_ms_ = 0;
+    uint32_t render_width_  = 0;
+    uint32_t render_height_ = 0;
 };
 
 } // namespace godot
