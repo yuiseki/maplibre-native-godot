@@ -13,11 +13,11 @@
 ::
 :: Usage:
 ::   set MLN_SOURCE_DIR=C:\path\to\maplibre-native
-::   scripts\build_maplibre_native_windows.bat
+::   scripts\windows\build_maplibre_native.bat
 
 setlocal EnableDelayedExpansion
 
-set ROOT_DIR=%~dp0..
+set ROOT_DIR=%~dp0..\..
 set MLN_BUILD_DIR=%ROOT_DIR%\build\maplibre-native-windows
 
 if not defined MLN_SOURCE_DIR (
@@ -95,4 +95,4 @@ echo.
 echo BUILD SUCCESS
 echo MapboxCoreTargets.cmake: %MLN_BUILD_DIR%\MapboxCoreTargets.cmake
 echo.
-echo Next step: run scripts\build_extension_windows.bat
+echo Next step: run scripts\windows\build_extension.bat

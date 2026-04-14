@@ -62,7 +62,7 @@ Validated on Ubuntu 24.04 / Linux 6.x, RTX 3060:
 
 ```bash
 export MLN_SOURCE_DIR=/path/to/maplibre-native
-./scripts/build_maplibre_native_linux.sh   # builds libmbgl-core.a
-./scripts/build_extension_linux.sh         # builds libmaplibre_native_godot.so
-DISPLAY=:0 ./scripts/run_godot.sh          # map renders, fly_to animates
+./scripts/linux/build_maplibre_native.sh   # builds libmbgl-core.a
+./scripts/linux/build_extension.sh         # builds libmaplibre_native_godot.so
+DISPLAY=:0 ./scripts/linux/run_godot.sh    # map renders, fly_to animates
 ```

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 # MLN_SOURCE_DIR must point to a maplibre-native checkout.
 # Override with: export MLN_SOURCE_DIR=/path/to/maplibre-native

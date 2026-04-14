@@ -6,11 +6,11 @@
 ::   C:\Users\yuiseki\src\maplibre-native-slint\build-ninja
 ::
 :: Usage (no env vars needed if defaults match):
-::   scripts\build_extension_windows_reuse_slint.bat
+::   scripts\windows\build_extension_reuse_slint.bat
 
 setlocal EnableDelayedExpansion
 
-set ROOT_DIR=%~dp0..
+set ROOT_DIR=%~dp0..\..
 set SLINT_DIR=C:\Users\yuiseki\src\maplibre-native-slint
 
 set MLN_SOURCE_DIR=%SLINT_DIR%\vendor\maplibre-native
@@ -33,4 +33,4 @@ set VCPKG_INSTALLED_X64=%SLINT_DIR%\build-ninja\vcpkg_installed\x64-windows
 set MLN_SOURCE_DIR=%MLN_SOURCE_DIR%
 set MLN_BUILD_DIR=%MLN_BUILD_DIR%
 set VCPKG_INSTALLED_X64=%VCPKG_INSTALLED_X64%
-call "%ROOT_DIR%\scripts\build_extension_windows.bat"
+call "%ROOT_DIR%\scripts\windows\build_extension.bat"

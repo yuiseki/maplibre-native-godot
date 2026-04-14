@@ -43,7 +43,10 @@ godot/
   scenes/demo.tscn      Demo scene
   scripts/map_window.gd Demo UI script
 docs/ADR/             Architecture decision records
-scripts/              Build helpers (macOS + Linux + Windows)
+scripts/
+  macos/                macOS build helpers
+  linux/                Linux build helpers
+  windows/              Windows build helpers
 CMakeLists.txt        Extension build
 maplibre_native_godot.gdextension
 project.godot
@@ -83,13 +86,13 @@ export MLN_SOURCE_DIR=/path/to/maplibre-native
 export MLN_SOURCE_DIR=/path/to/maplibre-native
 
 # Stage 1: build maplibre-native (RelWithDebInfo)
-./scripts/build_maplibre_native_macos.sh
+./scripts/macos/build_maplibre_native.sh
 
 # Stage 2: build the GDExtension
-./scripts/build_extension_macos.sh
+./scripts/macos/build_extension.sh
 
 # Or run both at once
-./scripts/build_all_macos.sh
+./scripts/macos/build_all.sh
 ```
 
 If you already have a maplibre-native macOS build, you can skip Stage 1
@@ -97,13 +100,13 @@ and point `MLN_BUILD_DIR` to it:
 
 ```bash
 export MLN_BUILD_DIR=/path/to/maplibre-native/build-macos-webgpu-wgpu
-./scripts/build_extension_macos.sh
+./scripts/macos/build_extension.sh
 ```
 
 ### Run
 
 ```bash
-./scripts/run_godot_macos.sh
+./scripts/macos/run_godot.sh
 ```
 
 ---
@@ -137,19 +140,19 @@ the binary at `tools/godot-4.3/Godot_v4.3-stable_linux.x86_64`.
 export MLN_SOURCE_DIR=/path/to/maplibre-native
 
 # Stage 1: build maplibre-native (RelWithDebInfo, -fPIC)
-./scripts/build_maplibre_native_linux.sh
+./scripts/linux/build_maplibre_native.sh
 
 # Stage 2: build the GDExtension
-./scripts/build_extension_linux.sh
+./scripts/linux/build_extension.sh
 
 # Or run both at once
-./scripts/build_all_linux.sh
+./scripts/linux/build_all.sh
 ```
 
 ### Run
 
 ```bash
-DISPLAY=:0 ./scripts/run_godot.sh
+DISPLAY=:0 ./scripts/linux/run_godot.sh
 ```
 
 ---
@@ -174,13 +177,13 @@ If you have an existing maplibre-native Windows build (e.g. from
 you can reuse it:
 
 ```bat
-scripts\build_extension_windows_reuse_slint.bat
+scripts\windows\build_extension_reuse_slint.bat
 ```
 
 Otherwise build maplibre-native from scratch first:
 
 ```bat
-scripts\build_all_windows.bat
+scripts\windows\build_all.bat
 ```
 
 ### Godot 4.3 binary
@@ -195,13 +198,13 @@ tools\godot-4.3\Godot_v4.3-stable_win64.exe
 
 ```bat
 set MLN_SOURCE_DIR=C:\path\to\maplibre-native
-scripts\build_extension_windows.bat
+scripts\windows\build_extension.bat
 ```
 
 ### Run
 
 ```bat
-scripts\run_godot.bat
+scripts\windows\run_godot.bat
 ```
 
 ---

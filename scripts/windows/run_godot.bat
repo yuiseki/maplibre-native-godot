@@ -4,7 +4,7 @@
 
 setlocal
 
-set ROOT_DIR=%~dp0..
+set ROOT_DIR=%~dp0..\..
 set LOCAL_GODOT=%ROOT_DIR%\tools\godot-4.3\Godot_v4.3-stable_win64.exe
 
 if defined GODOT_BIN goto :run

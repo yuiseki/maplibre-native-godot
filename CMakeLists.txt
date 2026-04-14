@@ -64,7 +64,7 @@ elseif(APPLE)
   if(NOT EXISTS "${_mln_targets}")
     message(FATAL_ERROR
       "MapboxCoreTargets.cmake not found at ${_mln_targets}.\n"
-      "Run scripts/build_maplibre_native_macos.sh first, or set MLN_BUILD_DIR\n"
+      "Run scripts/macos/build_maplibre_native.sh first, or set MLN_BUILD_DIR\n"
       "to an existing maplibre-native macOS build directory.")
   endif()
 
@@ -80,7 +80,7 @@ else()
   if(NOT EXISTS "${MLN_CORE_LIB}")
     message(FATAL_ERROR
       "maplibre-native core library was not found at ${MLN_CORE_LIB}.\n"
-      "Run scripts/build_maplibre_native_linux.sh first.")
+      "Run scripts/linux/build_maplibre_native.sh first.")
   endif()
 endif()
 

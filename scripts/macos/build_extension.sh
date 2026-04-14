@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 BUILD_DIR="${BUILD_DIR:-$ROOT_DIR/build/godot-extension-macos}"
 MLN_BUILD_DIR="${MLN_BUILD_DIR:-$ROOT_DIR/build/maplibre-native-macos}"
 GODOT_CPP_DIR="${GODOT_CPP_DIR:-$ROOT_DIR/third_party/godot-cpp}"
@@ -14,7 +14,7 @@ if [[ -z "${MLN_SOURCE_DIR:-}" ]]; then
 fi
 
 if [[ ! -f "$MLN_BUILD_DIR/libmbgl-core.a" ]]; then
-  printf 'Expected %s/libmbgl-core.a. Run scripts/build_maplibre_native_macos.sh first.\n' "$MLN_BUILD_DIR" >&2
+  printf 'Expected %s/libmbgl-core.a. Run scripts/macos/build_maplibre_native.sh first.\n' "$MLN_BUILD_DIR" >&2
   exit 1
 fi
 

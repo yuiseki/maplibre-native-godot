@@ -5,7 +5,7 @@
 ::   - Visual Studio 2022 (Community or higher)
 ::   - CMake + Ninja in PATH
 ::   - godot-cpp checked out at third_party\godot-cpp
-::   - maplibre-native built for Windows (run build_maplibre_native_windows.bat first,
+::   - maplibre-native built for Windows (run scripts\windows\build_maplibre_native.bat first,
 ::     OR point MLN_BUILD_DIR to an existing build such as the maplibre-native-slint
 ::     project's build-ninja\vendor\maplibre-native directory)
 ::   - vcpkg at C:\src\vcpkg
@@ -13,11 +13,11 @@
 :: Usage:
 ::   set MLN_SOURCE_DIR=C:\path\to\maplibre-native
 ::   set MLN_BUILD_DIR=C:\path\to\maplibre-native-windows-build   (optional override)
-::   scripts\build_extension_windows.bat
+::   scripts\windows\build_extension.bat
 
 setlocal EnableDelayedExpansion
 
-set ROOT_DIR=%~dp0..
+set ROOT_DIR=%~dp0..\..
 set BUILD_DIR=%ROOT_DIR%\build\godot-extension-windows
 set GODOT_CPP_DIR=%ROOT_DIR%\third_party\godot-cpp
 
@@ -35,7 +35,7 @@ if not defined MLN_SOURCE_DIR (
 
 if not exist "%MLN_BUILD_DIR%\MapboxCoreTargets.cmake" (
     echo ERROR: MapboxCoreTargets.cmake not found at %MLN_BUILD_DIR%
-    echo Run scripts\build_maplibre_native_windows.bat first.
+    echo Run scripts\windows\build_maplibre_native.bat first.
     echo Or set MLN_BUILD_DIR to an existing maplibre-native Windows build, e.g.:
     echo   set MLN_BUILD_DIR=C:\Users\yuiseki\src\maplibre-native-slint\build-ninja\vendor\maplibre-native
     exit /b 1
