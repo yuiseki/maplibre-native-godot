@@ -1,5 +1,6 @@
 /build/
 /bin/
 /third_party/godot-cpp/
-/.godot/
+/.godot/*
+!/.godot/extension_list.cfg
 /tools/
