@@ -3,7 +3,9 @@
 A reference PoC for embedding [maplibre-native](https://github.com/maplibre/maplibre-native)
 into a [Godot 4](https://godotengine.org/) project via GDExtension.
 
-> **Status:** Working on Linux. Windows support is planned.
+> **Status:** Working on Linux and Windows.
+
+[![Screenshot](https://i.gyazo.com/d4d73415fed09db3ff4776cf0b74ad6e.png)](https://gyazo.com/d4d73415fed09db3ff4776cf0b74ad6e)
 
 ![demo](docs/demo.gif)
 
@@ -31,13 +33,25 @@ godot/
   scenes/demo.tscn      Demo scene
   scripts/map_window.gd Demo UI script
 docs/ADR/             Architecture decision records
-scripts/              Linux build helpers
+scripts/              Build helpers (Linux + Windows)
 CMakeLists.txt        Extension build
 maplibre_native_godot.gdextension
 project.godot
 ```
 
 ## Requirements
+
+### godot-cpp
+
+Check out godot-cpp matching Godot 4.3 into `third_party/godot-cpp`:
+
+```bash
+git clone --branch godot-4.3-stable https://github.com/godotengine/godot-cpp third_party/godot-cpp
+```
+
+---
+
+## Linux
 
 ### System packages (Ubuntu / Debian)
 
@@ -50,34 +64,17 @@ sudo apt install cmake ninja-build python3 \
 
 ### External source dependency
 
-Clone [maplibre-native](https://github.com/maplibre/maplibre-native) (or your fork)
-and export `MLN_SOURCE_DIR`:
-
 ```bash
 git clone https://github.com/maplibre/maplibre-native /path/to/maplibre-native
 export MLN_SOURCE_DIR=/path/to/maplibre-native
 ```
 
-### godot-cpp
-
-Check out godot-cpp matching Godot 4.3 into `third_party/godot-cpp`:
-
-```bash
-git clone --branch godot-4.3 https://github.com/godotengine/godot-cpp third_party/godot-cpp
-```
-
 ### Godot 4.3 binary
 
-Either install Godot 4.3 system-wide (`godot4` / `godot` on `PATH`), or place
-the Linux binary at:
+Install Godot 4.3 system-wide (`godot4` / `godot` on `PATH`), or place
+the binary at `tools/godot-4.3/Godot_v4.3-stable_linux.x86_64`.
 
-```
-tools/godot-4.3/Godot_v4.3-stable_linux.x86_64
-```
-
-The run script checks all three locations automatically.
-
-## Build
+### Build
 
 ```bash
 export MLN_SOURCE_DIR=/path/to/maplibre-native
@@ -92,13 +89,65 @@ export MLN_SOURCE_DIR=/path/to/maplibre-native
 ./scripts/build_all_linux.sh
 ```
 
-## Run
+### Run
 
 ```bash
 DISPLAY=:0 ./scripts/run_godot.sh
 ```
 
-Pass additional Godot flags as needed (e.g. `--editor`, `--headless --quit`).
+---
+
+## Windows
+
+### Prerequisites
+
+- Visual Studio 2022 (Community or higher) with C++ Desktop workload
+- CMake + Ninja in `PATH`
+- [vcpkg](https://github.com/microsoft/vcpkg) at `C:\src\vcpkg`
+- maplibre-native Windows build (see below)
+
+### External source dependency
+
+```bat
+set MLN_SOURCE_DIR=C:\path\to\maplibre-native
+```
+
+If you have an existing maplibre-native Windows build (e.g. from
+[maplibre-native-slint](https://github.com/maplibre/maplibre-native-slint)),
+you can reuse it:
+
+```bat
+scripts\build_extension_windows_reuse_slint.bat
+```
+
+Otherwise build maplibre-native from scratch first:
+
+```bat
+scripts\build_all_windows.bat
+```
+
+### Godot 4.3 binary
+
+Place `Godot_v4.3-stable_win64.exe` at:
+
+```
+tools\godot-4.3\Godot_v4.3-stable_win64.exe
+```
+
+### Build
+
+```bat
+set MLN_SOURCE_DIR=C:\path\to\maplibre-native
+scripts\build_extension_windows.bat
+```
+
+### Run
+
+```bat
+scripts\run_godot.bat
+```
+
+---
 
 ## Architecture notes
 
@@ -108,7 +157,8 @@ Pass additional Godot flags as needed (e.g. `--editor`, `--headless --quit`).
 | Per-frame drive | `NOTIFICATION_PROCESS` → `MapRuntime::tick()` |
 | Pixel upload | `readStillImage()` + `unpremultiply()` → `ImageTexture::update()` |
 | C++ standard | C++20 (maplibre-native headers require `std::numbers`, `std::span`) |
-| Static linking | Individual PIC-compiled vendor libs + `--whole-archive`; system libs dynamic |
+| Linux linking | Individual PIC-compiled vendor libs + `--whole-archive`; system libs dynamic |
+| Windows linking | MSVC Release, imports `MapboxCoreTargets.cmake`; `wgpu_native.dll` alongside extension DLL |
 | GPU isolation | wgpu-native and Godot's Vulkan renderer use independent contexts |
 
 See `docs/ADR/` for detailed rationale.
