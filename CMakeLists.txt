@@ -7,8 +7,15 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(GODOT_CPP_DIR "${CMAKE_SOURCE_DIR}/third_party/godot-cpp" CACHE PATH "Path to a godot-cpp checkout")
-set(MLN_SOURCE_DIR "/home/yuiseki/Workspaces/repos/_yuiseki/_fork/maplibre-native" CACHE PATH "Path to maplibre-native source")
-set(MLN_BUILD_DIR "${CMAKE_SOURCE_DIR}/build/maplibre-native-linux-clean" CACHE PATH "Path to maplibre-native build output")
+set(MLN_SOURCE_DIR "" CACHE PATH "Path to maplibre-native source (required)")
+set(MLN_BUILD_DIR "${CMAKE_SOURCE_DIR}/build/maplibre-native-linux" CACHE PATH "Path to maplibre-native build output")
+
+if(NOT MLN_SOURCE_DIR OR NOT EXISTS "${MLN_SOURCE_DIR}/CMakeLists.txt")
+  message(FATAL_ERROR
+    "MLN_SOURCE_DIR must point to a maplibre-native checkout.\n"
+    "  cmake ... -DMLN_SOURCE_DIR=/path/to/maplibre-native\n"
+    "  Or export MLN_SOURCE_DIR before running the build scripts.")
+endif()
 
 # We use individual PIC-compiled libs rather than the amalgam to avoid bundled
 # system static libs (libssl, libuv…) that were not built with -fPIC.

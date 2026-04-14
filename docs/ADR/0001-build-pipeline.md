@@ -2,71 +2,67 @@
 
 ## Status
 
-Accepted
+Accepted — validated
 
 ## Context
 
-We want a realistic path toward `maplibre-native-godot`, but the current
-constraint set is hostile:
+We want a realistic path toward a `maplibre-native` renderer inside Godot 4,
+but the starting constraint set is hostile:
 
 - `maplibre-native` is increasingly centered on WebGPU-oriented paths.
 - Godot desktop integration through GDExtension is viable, but direct GPU
   resource sharing is not the right first step.
-- Existing Godot map plugins in local forks are too old to guide a modern
+- Existing Godot map plugins are too old (Godot 3 era) to guide a modern
   implementation.
 
 The immediate need is not a polished renderer. The immediate need is a build
-pipeline that makes the relationship between:
-
-- the Godot project,
-- the GDExtension,
-- and the local `maplibre-native` fork
-
-clear and reproducible.
+pipeline that makes the relationship between the Godot project, the GDExtension,
+and the local `maplibre-native` checkout clear and reproducible.
 
 ## Decision
 
 For the Linux PoC, use a two-stage build:
 
-1. Build `maplibre-native` separately into a local build directory inside this
-   PoC repository.
+1. Build `maplibre-native` separately into a local build directory.
 2. Build a thin C++ GDExtension against that result.
 
-The GDExtension remains a stub at first. It should link cleanly and register a
-Godot class before we attempt headless rendering or texture upload.
+Key build decisions:
+
+- **C++20** — maplibre-native public headers use `std::numbers`, `std::span`,
+  and `requires` constraints that require C++20.
+- **Individual PIC-compiled static libs, not the amalgam** — `libmbgl-core-amalgam.a`
+  merges system static libs (libssl, libuv, libz, …) that system package managers
+  do not compile with `-fPIC`. Linking them into a shared library produces
+  `R_X86_64_PC32` relocation errors. The fix is to use individual vendor libs
+  from the maplibre-native build (all compiled with `-fPIC=ON`) and link
+  system libs dynamically.
+- **`--whole-archive`** — self-registering factory objects inside maplibre-native
+  are dropped by the linker unless wrapped in `--whole-archive`.
+- **`-DCMAKE_POSITION_INDEPENDENT_CODE=ON`** — ensures all maplibre-native
+  object files are compiled with `-fPIC`.
 
 ## Consequences
 
 ### Positive
 
-- The seam between Godot and `maplibre-native` is explicit.
-- Failures are easier to localize.
-- We avoid coupling the first PoC to Godot renderer internals.
-- We can iterate on rendering later without redesigning the build.
+- The seam between Godot and `maplibre-native` is explicit and reproducible.
+- Failures are easy to localize (build stage 1 vs. stage 2 vs. runtime).
+- The PoC validates that wgpu-native and Godot's own Vulkan renderer can
+  coexist in the same process (each owns a separate Vulkan context).
 
 ### Negative
 
-- The pipeline is not yet convenient for end users.
-- `godot-cpp` is still an explicit dependency.
-- The first PoC does not prove rendering, only build coherence.
-- Runtime loading semantics still need validation outside editor mode.
+- The pipeline is Linux-only in this iteration.
+- `MLN_SOURCE_DIR` must be set by the user — no bundled maplibre-native.
+- `godot-cpp` is an explicit git dependency checked out separately.
 
-## Follow-up
+## Validation
 
-Once the build pipeline is stable, the next step is:
+Validated on Ubuntu 24.04 / Linux 6.x, RTX 3060:
 
-1. create a `MapRuntime` wrapper around headless `maplibre-native`,
-2. render to CPU image data,
-3. upload that image into a Godot texture,
-4. only later investigate native texture sharing.
-
-## Reality check
-
-As of the current implementation:
-
-- the Linux build pipeline is working,
-- the Godot editor initializes the extension,
-- but headless scene startup still fails to resolve `MapLibreMap`.
-
-So this ADR is now validated as a build-pipeline decision, not yet as a
-runtime-integration decision.
+```bash
+export MLN_SOURCE_DIR=/path/to/maplibre-native
+./scripts/build_maplibre_native_linux.sh   # builds libmbgl-core.a
+./scripts/build_extension_linux.sh         # builds libmaplibre_native_godot.so
+DISPLAY=:0 ./scripts/run_godot.sh          # map renders, fly_to animates
+```

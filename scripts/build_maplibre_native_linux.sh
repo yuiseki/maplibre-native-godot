@@ -2,14 +2,27 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-MLN_SOURCE_DIR="${MLN_SOURCE_DIR:-/home/yuiseki/Workspaces/repos/_yuiseki/_fork/maplibre-native}"
-MLN_BUILD_DIR="${MLN_BUILD_DIR:-$ROOT_DIR/build/maplibre-native-linux-clean}"
-SYSTEM_PATH="$HOME/.local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$HOME/.cargo/bin"
-CONDA_PREFIX_PATH="${CONDA_PREFIX:-/home/yuiseki/anaconda3}"
 
-env \
-  PATH="$SYSTEM_PATH" \
-  CMAKE_IGNORE_PREFIX_PATH="$CONDA_PREFIX_PATH" \
+# MLN_SOURCE_DIR must point to a maplibre-native checkout.
+# Override with: export MLN_SOURCE_DIR=/path/to/maplibre-native
+if [[ -z "${MLN_SOURCE_DIR:-}" ]]; then
+  printf 'Error: MLN_SOURCE_DIR is not set.\n' >&2
+  printf 'Export it before running this script:\n' >&2
+  printf '  export MLN_SOURCE_DIR=/path/to/maplibre-native\n' >&2
+  exit 1
+fi
+
+MLN_BUILD_DIR="${MLN_BUILD_DIR:-$ROOT_DIR/build/maplibre-native-linux}"
+
+# Isolate PATH from Conda/Homebrew/pyenv to avoid cmake/ninja version conflicts.
+SYSTEM_PATH="$HOME/.local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$HOME/.cargo/bin"
+
+CMAKE_ENV=(env PATH="$SYSTEM_PATH")
+if [[ -n "${CONDA_PREFIX:-}" ]]; then
+  CMAKE_ENV+=(CMAKE_IGNORE_PREFIX_PATH="$CONDA_PREFIX")
+fi
+
+"${CMAKE_ENV[@]}" \
   /usr/bin/cmake -S "$MLN_SOURCE_DIR" \
   -B "$MLN_BUILD_DIR" \
   -G Ninja \
