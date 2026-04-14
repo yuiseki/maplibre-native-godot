@@ -11,6 +11,8 @@ set(MLN_SOURCE_DIR "" CACHE PATH "Path to maplibre-native source (required)")
 
 if(WIN32)
   set(MLN_BUILD_DIR "${CMAKE_SOURCE_DIR}/build/maplibre-native-windows" CACHE PATH "Path to maplibre-native Windows build output")
+elseif(APPLE)
+  set(MLN_BUILD_DIR "${CMAKE_SOURCE_DIR}/build/maplibre-native-macos" CACHE PATH "Path to maplibre-native macOS build output")
 else()
   set(MLN_BUILD_DIR "${CMAKE_SOURCE_DIR}/build/maplibre-native-linux" CACHE PATH "Path to maplibre-native build output")
 endif()
@@ -53,6 +55,21 @@ if(WIN32)
   find_package(libuv CONFIG REQUIRED)
   find_package(ICU COMPONENTS i18n uc data QUIET)
   find_package(PNG REQUIRED)
+
+  include("${_mln_targets}")
+
+elseif(APPLE)
+  # macOS: import CMake targets from the maplibre-native build (same approach as Windows).
+  set(_mln_targets "${MLN_BUILD_DIR}/MapboxCoreTargets.cmake")
+  if(NOT EXISTS "${_mln_targets}")
+    message(FATAL_ERROR
+      "MapboxCoreTargets.cmake not found at ${_mln_targets}.\n"
+      "Run scripts/build_maplibre_native_macos.sh first, or set MLN_BUILD_DIR\n"
+      "to an existing maplibre-native macOS build directory.")
+  endif()
+
+  find_package(PkgConfig REQUIRED)
+  pkg_check_modules(LIBUV REQUIRED IMPORTED_TARGET libuv)
 
   include("${_mln_targets}")
 
@@ -140,6 +157,44 @@ if(WIN32)
       "Copy it manually to bin/ before running Godot.")
   endif()
 
+elseif(APPLE)
+  # macOS: link via imported CMake targets (MapboxCoreTargets.cmake).
+  # wgpu-native uses Metal on macOS; the dylib is copied to bin/ post-build.
+  target_link_libraries(maplibre_native_godot PRIVATE
+    godot-cpp
+    mbgl-core
+  )
+
+  # Copy libwgpu_native.dylib to bin/ so Godot can find it at runtime.
+  # The dylib's install name points to the deps/ subdirectory in the Rust build tree.
+  set(_wgpu_dylib "${MLN_SOURCE_DIR}/vendor/wgpu-native/target/release/libwgpu_native.dylib")
+  set(_wgpu_deps_dylib "${MLN_SOURCE_DIR}/vendor/wgpu-native/target/release/deps/libwgpu_native.dylib")
+  if(EXISTS "${_wgpu_dylib}")
+    add_custom_command(TARGET maplibre_native_godot POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${_wgpu_dylib}"
+        "${CMAKE_SOURCE_DIR}/bin/libwgpu_native.dylib"
+      # Fix the copied dylib's own install name to use @rpath
+      COMMAND install_name_tool -id
+        "@rpath/libwgpu_native.dylib"
+        "${CMAKE_SOURCE_DIR}/bin/libwgpu_native.dylib"
+      # Fix the extension's reference to wgpu_native (the recorded path uses deps/)
+      COMMAND install_name_tool -change
+        "${_wgpu_deps_dylib}"
+        "@rpath/libwgpu_native.dylib"
+        "$<TARGET_FILE:maplibre_native_godot>"
+      COMMENT "Copying libwgpu_native.dylib to bin/ and fixing install names")
+    # Set rpath to look in the same directory as the extension
+    set_target_properties(maplibre_native_godot PROPERTIES
+      INSTALL_RPATH "@loader_path"
+      BUILD_RPATH "@loader_path"
+    )
+  else()
+    message(WARNING
+      "libwgpu_native.dylib not found at ${_wgpu_dylib}.\n"
+      "Copy it manually to bin/ before running Godot.")
+  endif()
+
 elseif(UNIX AND NOT APPLE)
   # Linux: static libs linked with --whole-archive so that self-registering
   # factory objects are not stripped by the GNU linker.
@@ -184,6 +239,24 @@ if(WIN32)
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin"
     PREFIX ""
+    OUTPUT_NAME "${MLNG_OUTPUT_NAME}"
+  )
+elseif(APPLE)
+  # Detect architecture for output naming
+  if(CMAKE_OSX_ARCHITECTURES)
+    set(_arch "${CMAKE_OSX_ARCHITECTURES}")
+  else()
+    set(_arch "${CMAKE_SYSTEM_PROCESSOR}")
+  endif()
+  if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+    set(MLNG_OUTPUT_NAME "maplibre_native_godot.macos.template_release.${_arch}")
+  else()
+    set(MLNG_OUTPUT_NAME "maplibre_native_godot.macos.template_debug.${_arch}")
+  endif()
+  set_target_properties(maplibre_native_godot PROPERTIES
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin"
+    PREFIX "lib"
     OUTPUT_NAME "${MLNG_OUTPUT_NAME}"
   )
 else()

@@ -3,9 +3,13 @@
 A GDExtension for embedding [maplibre-native](https://github.com/maplibre/maplibre-native)
 into a [Godot 4](https://godotengine.org/) project.
 
-> **Status:** Working on Linux and Windows.
+> **Status:** Working on Linux, Windows, and macOS.
 
 ## Screenshots
+
+**macOS**
+
+[![Image from Gyazo](https://i.gyazo.com/efa197cbe634475b2efdda0c33afc691.png)](https://gyazo.com/efa197cbe634475b2efdda0c33afc691)
 
 **Windows**
 
@@ -39,7 +43,7 @@ godot/
   scenes/demo.tscn      Demo scene
   scripts/map_window.gd Demo UI script
 docs/ADR/             Architecture decision records
-scripts/              Build helpers (Linux + Windows)
+scripts/              Build helpers (macOS + Linux + Windows)
 CMakeLists.txt        Extension build
 maplibre_native_godot.gdextension
 project.godot
@@ -53,6 +57,53 @@ Check out godot-cpp matching Godot 4.3 into `third_party/godot-cpp`:
 
 ```bash
 git clone --branch godot-4.3-stable https://github.com/godotengine/godot-cpp third_party/godot-cpp
+```
+
+---
+
+## macOS
+
+### System packages (Homebrew)
+
+```bash
+brew install cmake ninja pkg-config libuv
+brew install --cask godot
+```
+
+### External source dependency
+
+```bash
+git clone https://github.com/maplibre/maplibre-native /path/to/maplibre-native
+export MLN_SOURCE_DIR=/path/to/maplibre-native
+```
+
+### Build
+
+```bash
+export MLN_SOURCE_DIR=/path/to/maplibre-native
+
+# Stage 1: build maplibre-native (RelWithDebInfo)
+./scripts/build_maplibre_native_macos.sh
+
+# Stage 2: build the GDExtension
+./scripts/build_extension_macos.sh
+
+# Or run both at once
+./scripts/build_all_macos.sh
+```
+
+If you already have a maplibre-native macOS build, you can skip Stage 1
+and point `MLN_BUILD_DIR` to it:
+
+```bash
+export MLN_BUILD_DIR=/path/to/maplibre-native/build-macos-webgpu-wgpu
+./scripts/build_extension_macos.sh
+```
+
+### Run
+
+```bash
+./scripts/run_godot_macos.sh
 ```
 
 ---
@@ -164,8 +215,9 @@ scripts\run_godot.bat
 | Pixel upload | `readStillImage()` + `unpremultiply()` → `ImageTexture::update()` |
 | C++ standard | C++20 (maplibre-native headers require `std::numbers`, `std::span`) |
 | Linux linking | Individual PIC-compiled vendor libs + `--whole-archive`; system libs dynamic |
+| macOS linking | Imports `MapboxCoreTargets.cmake`; `libwgpu_native.dylib` via `@rpath`/`@loader_path`; Metal backend |
 | Windows linking | MSVC Release, imports `MapboxCoreTargets.cmake`; `wgpu_native.dll` alongside extension DLL |
-| GPU isolation | wgpu-native and Godot's Vulkan renderer use independent contexts |
+| GPU isolation | wgpu-native and Godot's Vulkan/Metal renderer use independent contexts |
 
 See `docs/ADR/` for detailed rationale.
 
