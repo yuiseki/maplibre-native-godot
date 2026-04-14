@@ -249,8 +249,21 @@ a bottleneck.** Confirmed on both macOS (M4 Max) and Windows (RTX 3060):
 | 3840x2160 (4K) | ~33 MB | Noticeable frame drops on both platforms |
 
 The bottleneck is the CPU memcpy, not GPU power, so higher-spec machines
-help only marginally. Keep the `MapLibreMap` node at Full HD or below for
-interactive use, or render at a lower resolution and let Godot upscale.
+help only marginally.
+
+**Workaround:** This project fixes the internal viewport to 1920x1080 in
+`project.godot` and lets Godot upscale to the display resolution:
+
+```ini
+[display]
+window/size/viewport_width=1920
+window/size/viewport_height=1080
+window/stretch/mode="viewport"
+```
+
+With this setting, fullscreen on a 4K display still renders the map at
+1080p (~8 MB/frame) and Godot handles the upscaling on the GPU side.
+This keeps frame rate smooth regardless of display resolution.
 
 ## License
 
