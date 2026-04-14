@@ -1,0 +1,55 @@
+#pragma once
+
+#include <godot_cpp/classes/texture_rect.hpp>
+#include <godot_cpp/core/class_db.hpp>
+#include <godot_cpp/variant/string.hpp>
+
+#include <memory>
+
+// Forward-declare so the header stays free of maplibre-native includes.
+namespace maplibre_godot {
+class MapRuntime;
+} // namespace maplibre_godot
+
+namespace godot {
+
+class MapLibreMap : public TextureRect {
+    GDCLASS(MapLibreMap, TextureRect)
+
+public:
+    MapLibreMap();
+    ~MapLibreMap() override; // defined in .cpp where MapRuntime is complete
+
+    void set_style_url(const String& p_style_url);
+    String get_style_url() const;
+
+    void fly_to(double p_lat, double p_lon, double p_zoom);
+    void set_pitch(double p_pitch);
+    void set_bearing(double p_bearing);
+
+    double get_current_lat() const;
+    double get_current_lon() const;
+    double get_current_zoom() const;
+    double get_current_bearing() const;
+    double get_current_pitch() const;
+
+    void render_once();
+    String get_runtime_description() const;
+    void _notification(int p_what);
+
+protected:
+    static void _bind_methods();
+
+private:
+    String style_url = "https://demotiles.maplibre.org/style.json";
+    double current_lat     = 0.0;
+    double current_lon     = 0.0;
+    double current_zoom    = 1.0;
+    double current_bearing = 0.0;
+    double current_pitch   = 0.0;
+
+    // Persistent headless renderer — initialized lazily on first render_once().
+    std::unique_ptr<maplibre_godot::MapRuntime> runtime_;
+};
+
+} // namespace godot
