@@ -5,9 +5,15 @@ into a [Godot 4](https://godotengine.org/) project.
 
 > **Status:** Working on Linux and Windows.
 
-[![Screenshot](https://i.gyazo.com/dfd10904d4c9258bba6843d3c2a8b305.png)](https://gyazo.com/dfd10904d4c9258bba6843d3c2a8b305)
+## Screenshots
 
-![demo](docs/demo.gif)
+**Windows**
+
+[![Image from Gyazo](https://i.gyazo.com/dfd10904d4c9258bba6843d3c2a8b305.png)](https://gyazo.com/dfd10904d4c9258bba6843d3c2a8b305)
+
+**Linux**
+
+[![Image from Gyazo](https://i.gyazo.com/48401b553c80dc998c2fa58490d6c87a.png)](https://gyazo.com/48401b553c80dc998c2fa58490d6c87a)
 
 ## What it does
 
