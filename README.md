@@ -1,7 +1,7 @@
-# maplibre-native-godot-poc
+# maplibre-native-godot
 
-A reference PoC for embedding [maplibre-native](https://github.com/maplibre/maplibre-native)
-into a [Godot 4](https://godotengine.org/) project via GDExtension.
+A GDExtension for embedding [maplibre-native](https://github.com/maplibre/maplibre-native)
+into a [Godot 4](https://godotengine.org/) project.
 
 > **Status:** Working on Linux and Windows.
 
