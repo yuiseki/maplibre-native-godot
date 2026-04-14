@@ -241,9 +241,16 @@ requires on macOS), and at typical widget sizes (512x512 - 1024x1024,
 1-4 MB/frame RGBA) performance is smooth on all platforms.
 
 However, **at fullscreen / high resolutions the per-frame CPU copy becomes
-a bottleneck** and frame rate drops noticeably. Keep the `MapLibreMap` node
-at a reasonable size for interactive use, or consider a lower-resolution
-render target with upscaling if fullscreen display is needed.
+a bottleneck.** Confirmed on both macOS (M4 Max) and Windows (RTX 3060):
+
+| Resolution | RGBA/frame | Result |
+|------------|-----------|--------|
+| 1920x1080 (Full HD) | ~8 MB | Smooth on both platforms |
+| 3840x2160 (4K) | ~33 MB | Noticeable frame drops on both platforms |
+
+The bottleneck is the CPU memcpy, not GPU power, so higher-spec machines
+help only marginally. Keep the `MapLibreMap` node at Full HD or below for
+interactive use, or render at a lower resolution and let Godot upscale.
 
 ## License
 
