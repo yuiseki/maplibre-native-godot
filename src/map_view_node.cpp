@@ -135,7 +135,7 @@ void MapLibreMap::_notification(int p_what) {
         runtime_->jump_to(current_lat, current_lon, current_zoom,
                           current_bearing, current_pitch);
         set_process(true);
-        UtilityFunctions::print("MapLibreMap: ready — _process loop started");
+        UtilityFunctions::print("MapLibreMap: ready - _process loop started");
         return;
     }
 
