@@ -224,6 +224,27 @@ scripts\windows\run_godot.bat
 
 See `docs/ADR/` for detailed rationale.
 
+### Performance note: GPU isolation and resolution scaling
+
+maplibre-native renders via wgpu-native while Godot uses its own
+Vulkan/Metal renderer. The two GPU contexts are completely independent
+and pixel data is transferred through CPU every frame:
+
+```
+wgpu (map render) -> readStillImage -> CPU memcpy -> ImageTexture::update -> Godot renderer
+```
+
+This CPU roundtrip makes the extension **GPU-backend agnostic** (no need
+to match backends like
+[maplibre-native-slint](https://github.com/maplibre/maplibre-native-slint)
+requires on macOS), and at typical widget sizes (512x512 - 1024x1024,
+1-4 MB/frame RGBA) performance is smooth on all platforms.
+
+However, **at fullscreen / high resolutions the per-frame CPU copy becomes
+a bottleneck** and frame rate drops noticeably. Keep the `MapLibreMap` node
+at a reasonable size for interactive use, or consider a lower-resolution
+render target with upscaling if fullscreen display is needed.
+
 ## License
 
 This project is released under the [MIT License](LICENSE).
