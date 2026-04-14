@@ -24,6 +24,8 @@ public:
     String get_style_url() const;
 
     void fly_to(double p_lat, double p_lon, double p_zoom);
+    void jump_to(double p_lat, double p_lon, double p_zoom,
+                 double p_bearing = 0.0, double p_pitch = 0.0);
     void set_pitch(double p_pitch);
     void set_bearing(double p_bearing);
 
@@ -33,7 +35,7 @@ public:
     double get_current_bearing() const;
     double get_current_pitch() const;
 
-    void render_once();
+    int64_t get_last_render_ms() const;   // ms taken by the most recent tick()
     String get_runtime_description() const;
     void _notification(int p_what);
 
@@ -48,8 +50,9 @@ private:
     double current_bearing = 0.0;
     double current_pitch   = 0.0;
 
-    // Persistent headless renderer — initialized lazily on first render_once().
+    // Persistent headless renderer — initialized in NOTIFICATION_READY.
     std::unique_ptr<maplibre_godot::MapRuntime> runtime_;
+    int64_t last_render_ms_ = 0;
 };
 
 } // namespace godot
