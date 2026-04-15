@@ -88,6 +88,34 @@ vcpkg_installed may be empty in the cache. This needs verification.
    not reliably resolve relative paths. Use absolute paths via
    `${{ github.workspace }}`.
 
+4. **Dynamically finding `vcpkg_installed` after build** -- maplibre-native's
+   own vcpkg installs packages to `Z:/` (the runner's binary cache drive),
+   NOT into `build/maplibre-native-windows/vcpkg_installed/`. The directory
+   simply does not exist in the build output tree. `find` returns nothing.
+
+## Next steps to try
+
+The core problem: maplibre-native's vcpkg puts installed packages on `Z:/`,
+which is ephemeral and not part of the build output we cache. Possible solutions:
+
+- **Option A:** After maplibre-native builds, explicitly copy `Z:/installed/x64-windows`
+  (or wherever vcpkg actually installed) into `build/maplibre-native-windows/vcpkg_installed/`.
+  Requires finding the exact Z:/ path from CI logs.
+
+- **Option B:** Use the runner's vcpkg (`$VCPKG_INSTALLATION_ROOT`) for BOTH
+  maplibre-native and the GDExtension, but configure maplibre-native to NOT
+  use its internal vcpkg. This requires setting `VCPKG_OVERLAY_TRIPLETS` to
+  maplibre-native's custom triplets while using the runner's vcpkg toolchain.
+  See `scripts/windows/build_maplibre_native.bat` for how local builds do this:
+  ```bat
+  set VCPKG_OVERLAY_TRIPLETS=%MLN_SOURCE_DIR%\platform\windows\vendor\vcpkg-custom-triplets
+  ```
+
+- **Option C:** Make the GDExtension Windows CMake not depend on `find_package`
+  for vcpkg packages at all. Instead, import only `MapboxCoreTargets.cmake`
+  (like macOS does) and let transitive dependencies handle everything.
+  This would require refactoring the WIN32 block in CMakeLists.txt.
+
 ## What works locally
 
 On a local Windows machine with maplibre-native-slint already built,
