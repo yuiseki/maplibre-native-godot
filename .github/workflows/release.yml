@@ -149,6 +149,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release `
             -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" `
             -DVCPKG_TARGET_TRIPLET=x64-windows -DVCPKG_HOST_TRIPLET=x64-windows `
+            -DVCPKG_INSTALLED_DIR="${{ github.workspace }}/build/maplibre-native-windows/vcpkg_installed" `
             -DMLN_WITH_WEBGPU=ON -DMLN_WEBGPU_IMPL_WGPU=ON -DMLN_CREATE_AMALGAMATION=OFF `
             -DMLN_WITH_GLFW=OFF -DMLN_WITH_QT=OFF -DMLN_WITH_TESTS=OFF `
             -DMLN_WITH_BENCHMARKS=OFF -DMLN_WITH_RENDER_TESTS=OFF
