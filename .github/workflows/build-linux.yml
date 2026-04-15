@@ -64,7 +64,12 @@ jobs:
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
             -DMLN_WITH_WEBGPU=ON \
             -DMLN_WEBGPU_IMPL_WGPU=ON \
-            -DMLN_CREATE_AMALGAMATION=ON
+            -DMLN_CREATE_AMALGAMATION=ON \
+            -DMLN_WITH_GLFW=OFF \
+            -DMLN_WITH_QT=OFF \
+            -DMLN_WITH_TESTS=OFF \
+            -DMLN_WITH_BENCHMARKS=OFF \
+            -DMLN_WITH_RENDER_TESTS=OFF
           cmake --build build/maplibre-native-linux --target mbgl-core --parallel
 
       - name: Build GDExtension (Release)
