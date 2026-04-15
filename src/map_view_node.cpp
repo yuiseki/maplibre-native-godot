@@ -64,11 +64,12 @@ String MapLibreMap::get_style_url() const {
 // ---------------------------------------------------------------------------
 
 void MapLibreMap::fly_to(double p_lat, double p_lon, double p_zoom) {
+    const double prev_zoom = current_zoom; // capture before overwriting
     current_lat  = p_lat;
     current_lon  = p_lon;
     current_zoom = p_zoom;
     if (runtime_)
-        runtime_->fly_to(p_lat, p_lon, p_zoom);
+        runtime_->fly_to(p_lat, p_lon, p_zoom, prev_zoom);
 }
 
 void MapLibreMap::jump_to(double p_lat, double p_lon, double p_zoom,
