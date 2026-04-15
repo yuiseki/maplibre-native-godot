@@ -106,6 +106,18 @@ jobs:
             -DMLN_WITH_RENDER_TESTS=OFF
           cmake --build build/maplibre-native-windows --target mbgl-core --parallel
 
+      # dlfcn-win32, libuv, libpng, zlib are required by the GDExtension's
+      # CMakeLists.txt (find_package) but are not installed by the
+      # maplibre-native build step. Install them explicitly so they land in
+      # $VCPKG_INSTALLATION_ROOT/installed/x64-windows.
+      - name: Install GDExtension vcpkg dependencies
+        run: |
+          & "$env:VCPKG_INSTALLATION_ROOT\vcpkg.exe" install `
+            dlfcn-win32:x64-windows `
+            libuv:x64-windows `
+            libpng:x64-windows `
+            zlib:x64-windows
+
       - name: Build GDExtension (Release)
         run: |
           cmake -S . `
