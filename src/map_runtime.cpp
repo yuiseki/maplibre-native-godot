@@ -1,4 +1,5 @@
 #include "map_runtime.hpp"
+#include "animation.hpp"
 
 #include <mbgl/gfx/backend_scope.hpp>
 #include <mbgl/gfx/headless_frontend.hpp>
@@ -13,9 +14,7 @@
 #include <mbgl/util/premultiply.hpp>
 #include <mbgl/util/run_loop.hpp>
 
-#include <algorithm>
 #include <chrono>
-#include <cmath>
 #include <cstring>
 #include <exception>
 
@@ -24,10 +23,6 @@ namespace maplibre_godot {
 // ---------------------------------------------------------------------------
 // Animation helpers (ported from maplibre-native-slint)
 // ---------------------------------------------------------------------------
-
-static double ease_in_out(double t) {
-    return t < 0.5 ? 4.0 * t * t * t : 1.0 - std::pow(-2.0 * t + 2.0, 3.0) / 2.0;
-}
 
 struct AnimState {
     bool     active            = false;
@@ -81,34 +76,32 @@ struct MapRuntime::Impl {
         const double elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
                                    now - anim.start_time).count();
         double t = std::clamp(elapsed / static_cast<double>(anim.duration_ms), 0.0, 1.0);
-        double k = ease_in_out(t);
+        double k = maplibre_godot::ease_in_out(t);
 
-        auto lerp = [](double a, double b, double f) { return a + (b - a) * f; };
-
-        // Center — hold at start for the first center_hold_ratio, then sweep
+        // Center -- hold at start for the first center_hold_ratio, then sweep
         double k_center;
         if (t <= anim.center_hold_ratio) {
             double t_hold = anim.center_hold_ratio > 0.0
                             ? t / anim.center_hold_ratio : 1.0;
-            k_center = 0.10 * ease_in_out(t_hold);
+            k_center = 0.10 * maplibre_godot::ease_in_out(t_hold);
         } else {
             double t_rest = (t - anim.center_hold_ratio) /
                             std::max(1e-6, 1.0 - anim.center_hold_ratio);
-            k_center = 0.10 + 0.90 * ease_in_out(t_rest);
+            k_center = 0.10 + 0.90 * maplibre_godot::ease_in_out(t_rest);
         }
         mbgl::LatLng c{
-            lerp(anim.start_center.latitude(),  anim.target_center.latitude(),  k_center),
-            lerp(anim.start_center.longitude(), anim.target_center.longitude(), k_center)};
+            maplibre_godot::lerp(anim.start_center.latitude(),  anim.target_center.latitude(),  k_center),
+            maplibre_godot::lerp(anim.start_center.longitude(), anim.target_center.longitude(), k_center)};
 
-        // Zoom — two-phase: zoom-out then zoom-in
+        // Zoom -- two-phase: zoom-out then zoom-in
         double z;
         if (t <= anim.mid_ratio) {
             double t0 = anim.mid_ratio > 0.0 ? t / anim.mid_ratio : 1.0;
-            z = lerp(anim.start_zoom, anim.mid_zoom, ease_in_out(t0));
+            z = maplibre_godot::lerp(anim.start_zoom, anim.mid_zoom, maplibre_godot::ease_in_out(t0));
         } else {
             double t1 = (t - anim.mid_ratio) /
                         std::max(1e-6, 1.0 - anim.mid_ratio);
-            z = lerp(anim.mid_zoom, anim.target_zoom, ease_in_out(t1));
+            z = maplibre_godot::lerp(anim.mid_zoom, anim.target_zoom, maplibre_godot::ease_in_out(t1));
         }
 
         mbgl::CameraOptions cam;
@@ -218,17 +211,8 @@ void MapRuntime::fly_to(double lat, double lon, double zoom) {
     const mbgl::LatLng start = cam.center.value_or(target);
     const double start_zoom  = cam.zoom.value_or(10.0);
 
-    // Approximate great-circle distance in degrees
-    auto deg2rad = [](double d) { return d * M_PI / 180.0; };
-    double lat1r  = deg2rad(start.latitude());
-    double lat2r  = deg2rad(lat);
-    double x = deg2rad(lon - start.longitude()) * std::cos((lat1r + lat2r) * 0.5);
-    double y = lat2r - lat1r;
-    double dist = std::sqrt(x * x + y * y) * 180.0 / M_PI;
-
-    double zoom_out_delta = std::max(2.0, 8.0 + std::min(3.0, dist / 8.0));
-    double mid_zoom = std::clamp(start_zoom - zoom_out_delta,
-                                 Impl::kMinZoom, Impl::kMaxZoom);
+    double dist = approx_distance_deg(start.latitude(), start.longitude(), lat, lon);
+    double mid_zoom = fly_to_mid_zoom(start_zoom, dist, Impl::kMinZoom, Impl::kMaxZoom);
 
     auto& a            = impl_->anim;
     a.active           = true;
