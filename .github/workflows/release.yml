@@ -124,7 +124,11 @@ jobs:
         run: echo "sha=$(git -C maplibre-native rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       - uses: actions/cache@v4
         id: cache-mln
-        with: { path: build/maplibre-native-windows, key: "mln-windows-${{ steps.mln-sha.outputs.sha }}" }
+        with:
+          path: |
+            build/maplibre-native-windows
+            maplibre-native/vendor/wgpu-native/target/release/wgpu_native.dll
+          key: mln-windows-${{ steps.mln-sha.outputs.sha }}
       - uses: actions-rust-lang/setup-rust-toolchain@v1
         if: steps.cache-mln.outputs.cache-hit != 'true'
       - uses: actions/github-script@v7
@@ -156,7 +160,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release `
             -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" `
             -DVCPKG_TARGET_TRIPLET=x64-windows -DVCPKG_MANIFEST_MODE=OFF `
-            -DCMAKE_PREFIX_PATH="build/maplibre-native-windows/vcpkg_installed/x64-windows" `
+            -DCMAKE_PREFIX_PATH="${{ github.workspace }}/build/maplibre-native-windows/vcpkg_installed/x64-windows" `
             -DMLN_SOURCE_DIR="${{ github.workspace }}/maplibre-native" `
             -DMLN_BUILD_DIR="${{ github.workspace }}/build/maplibre-native-windows" `
             "-DCMAKE_CXX_FLAGS_DEBUG=/MDd /Zi /Ob0 /Od /RTC1"
