@@ -8,8 +8,8 @@ on:
     branches: [main]
 
 env:
-  MLN_REPO: yuiseki/maplibre-native
-  MLN_BRANCH: macos-webgpu-amalgam-bundled-wgpu
+  MLN_REPO: maplibre/maplibre-native
+  MLN_BRANCH: main
   GODOT_CPP_BRANCH: godot-4.3-stable
 
 jobs:
