@@ -128,7 +128,8 @@ jobs:
           path: |
             build/maplibre-native-windows
             maplibre-native/vendor/wgpu-native/target/release/wgpu_native.dll
-          key: mln-windows-${{ steps.mln-sha.outputs.sha }}
+            maplibre-native/platform/windows/vendor/vcpkg/installed
+          key: mln-windows-${{ steps.mln-sha.outputs.sha }}-v6
       - uses: actions-rust-lang/setup-rust-toolchain@v1
         if: steps.cache-mln.outputs.cache-hit != 'true'
       - uses: actions/github-script@v7
@@ -143,21 +144,26 @@ jobs:
         with: { path: build/godot-extension-windows/godot-cpp, key: "godot-cpp-windows-${{ env.GODOT_CPP_BRANCH }}-Release" }
       - name: Build maplibre-native
         if: steps.cache-mln.outputs.cache-hit != 'true'
+        env:
+          LIBCLANG_PATH: C:\Program Files\LLVM\lib
         run: |
           cmake -S maplibre-native `
             -B build/maplibre-native-windows -G Ninja `
             -DCMAKE_BUILD_TYPE=Release `
+            -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" `
             -DVCPKG_TARGET_TRIPLET=x64-windows -DVCPKG_HOST_TRIPLET=x64-windows `
+            -DVCPKG_OVERLAY_TRIPLETS="${{ github.workspace }}/maplibre-native/platform/windows/vendor/vcpkg-custom-triplets" `
             -DMLN_WITH_WEBGPU=ON -DMLN_WEBGPU_IMPL_WGPU=ON -DMLN_CREATE_AMALGAMATION=OFF `
             -DMLN_WITH_GLFW=OFF -DMLN_WITH_QT=OFF -DMLN_WITH_TESTS=OFF `
             -DMLN_WITH_BENCHMARKS=OFF -DMLN_WITH_RENDER_TESTS=OFF
           cmake --build build/maplibre-native-windows --target mbgl-core --parallel
-      - name: Find vcpkg_installed directory
-        id: vcpkg-dir
-        shell: bash
+      - name: Install GDExtension vcpkg dependencies
         run: |
-          VCPKG_DIR=$(find build/maplibre-native-windows -path "*/vcpkg_installed/x64-windows" -type d | head -1)
-          echo "path=$(cd "$VCPKG_DIR" && pwd)" >> "$GITHUB_OUTPUT"
+          & "$env:VCPKG_INSTALLATION_ROOT\vcpkg.exe" install `
+            dlfcn-win32:x64-windows `
+            libuv:x64-windows `
+            libpng:x64-windows `
+            zlib:x64-windows
       - name: Build GDExtension
         run: |
           cmake -S . `
@@ -165,7 +171,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release `
             -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" `
             -DVCPKG_TARGET_TRIPLET=x64-windows -DVCPKG_MANIFEST_MODE=OFF `
-            -DCMAKE_PREFIX_PATH="${{ steps.vcpkg-dir.outputs.path }}" `
+            "-DCMAKE_PREFIX_PATH=${{ github.workspace }}/maplibre-native/platform/windows/vendor/vcpkg/installed/x64-windows;$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows" `
             -DMLN_SOURCE_DIR="${{ github.workspace }}/maplibre-native" `
             -DMLN_BUILD_DIR="${{ github.workspace }}/build/maplibre-native-windows" `
             "-DCMAKE_CXX_FLAGS_DEBUG=/MDd /Zi /Ob0 /Od /RTC1"
