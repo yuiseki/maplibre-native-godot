@@ -69,7 +69,8 @@ jobs:
             -DMLN_WITH_QT=OFF \
             -DMLN_WITH_TESTS=OFF \
             -DMLN_WITH_BENCHMARKS=OFF \
-            -DMLN_WITH_RENDER_TESTS=OFF
+            -DMLN_WITH_RENDER_TESTS=OFF \
+            -DCMAKE_CXX_FLAGS="-Wno-error=shadow"
           cmake --build build/maplibre-native-linux --target mbgl-core --parallel
 
       - name: Build GDExtension (Release)
