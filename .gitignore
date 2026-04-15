@@ -4,3 +4,4 @@
 /.godot/*
 !/.godot/extension_list.cfg
 /tools/
+*.uid
