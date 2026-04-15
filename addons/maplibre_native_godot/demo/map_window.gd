@@ -7,7 +7,7 @@ const STYLE_URLS := [
 
 var map_node
 var zoom_label: Label
-var perf_label: Label   # shows last render time in ms
+var perf_label: Label
 
 
 func _ready() -> void:
@@ -71,7 +71,6 @@ func _build_ui() -> void:
 	zoom_label.text = "Zoom: 1"
 	toolbar.add_child(zoom_label)
 
-	# Performance label — always visible below the toolbar
 	perf_label = Label.new()
 	perf_label.text = "Render: — ms"
 	perf_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
@@ -81,10 +80,10 @@ func _build_ui() -> void:
 	if map_node == null:
 		push_error("failed to instantiate MapLibreMap")
 		return
-	map_node.expand_mode  = TextureRect.EXPAND_IGNORE_SIZE
+	map_node.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	map_node.stretch_mode = TextureRect.STRETCH_SCALE
 	map_node.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	map_node.size_flags_vertical   = Control.SIZE_EXPAND_FILL
+	map_node.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	root.add_child(map_node)
 
 
@@ -126,13 +125,7 @@ func _refresh_labels() -> void:
 	perf_label.text = "Render: %d ms" % map_node.get_last_render_ms()
 
 
-# ---------------------------------------------------------------------------
-# Benchmark: fly_to Paris then collect tick times over 90 frames (~3 s).
-# With Continuous mode each process frame calls tick() so we measure
-# sustained FPS across a full fly_to animation arc.
-# ---------------------------------------------------------------------------
-
-const BENCH_FRAMES := 90   # ~3 s at 30 fps
+const BENCH_FRAMES := 90
 
 func _run_benchmark() -> void:
 	print("=== Benchmark start (%d frames) ===" % BENCH_FRAMES)
@@ -145,8 +138,8 @@ func _run_benchmark() -> void:
 		_refresh_labels()
 
 	var total := 0
-	var mn    := times[0]
-	var mx    := times[0]
+	var mn := times[0]
+	var mx := times[0]
 	for t in times:
 		total += t
 		mn = min(mn, t)

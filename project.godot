@@ -14,8 +14,8 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 
 [application]
 
-config/name="maplibre-native-godot-poc"
-run/main_scene="res://godot/scenes/demo.tscn"
+config/name="maplibre-native-godot"
+run/main_scene="res://addons/maplibre_native_godot/demo/demo.tscn"
 config/features=PackedStringArray("4.6", "Forward Plus")
 
 [display]
@@ -26,4 +26,4 @@ window/stretch/mode="viewport"
 
 [native_extensions]
 
-paths=["res://maplibre_native_godot.gdextension"]
+paths=["res://addons/maplibre_native_godot/maplibre_native_godot.gdextension"]

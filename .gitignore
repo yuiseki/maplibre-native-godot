@@ -1,5 +1,7 @@
 /build/
 /bin/
+/dist/
+/addons/maplibre_native_godot/bin/
 /third_party/godot-cpp/
 /.godot/*
 !/.godot/extension_list.cfg

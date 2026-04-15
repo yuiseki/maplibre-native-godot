@@ -31,25 +31,51 @@ into a [Godot 4](https://godotengine.org/) project.
   `get_current_zoom`, `get_last_render_ms`.
 - Demo scene: style picker, Paris / New York / Tokyo buttons, pitch slider,
   bearing slider, FPS benchmark.
+- Ships as a self-contained Godot addon under `addons/maplibre_native_godot/`
+  so it can be zipped and distributed through GitHub Releases.
 
 ## Repository layout
 
 ```
+addons/maplibre_native_godot/
+  maplibre_native_godot.gdextension
+  bin/                    Platform binaries emitted by the build
+  demo/                   Demo scene + script
 src/                  C++ GDExtension sources
   map_runtime.hpp/cpp   MapRuntime — thin wrapper around mbgl::Map (Continuous mode)
   map_view_node.hpp/cpp MapLibreMap Godot node
   register_types.cpp    GDExtension entry point
-godot/
-  scenes/demo.tscn      Demo scene
-  scripts/map_window.gd Demo UI script
 docs/ADR/             Architecture decision records
 scripts/
   macos/                macOS build helpers
   linux/                Linux build helpers
   windows/              Windows build helpers
+  package_release.sh    Create a GitHub Releases ZIP from addons/
 CMakeLists.txt        Extension build
-maplibre_native_godot.gdextension
 project.godot
+```
+
+## Distribution layout
+
+The runtime-facing files live under `addons/maplibre_native_godot/`.
+This is intentional: a release ZIP can be extracted directly into the root of a
+Godot project, after which the editor can load the `.gdextension` immediately.
+
+To build a release ZIP from the current working tree:
+
+```bash
+./scripts/package_release.sh
+```
+
+This creates `dist/maplibre-native-godot-<version>.zip` containing:
+
+```text
+addons/maplibre_native_godot/
+  maplibre_native_godot.gdextension
+  bin/
+  demo/
+  LICENSE
+  THIRD_PARTY_LICENSES.md
 ```
 
 ## Requirements

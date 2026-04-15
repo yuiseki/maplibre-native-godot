@@ -96,6 +96,16 @@ add_library(maplibre_native_godot SHARED
   src/map_runtime.cpp
 )
 
+set(MAPLIBRE_NATIVE_GODOT_ADDON_DIR
+  "${CMAKE_SOURCE_DIR}/addons/maplibre_native_godot")
+set(MAPLIBRE_NATIVE_GODOT_BIN_DIR
+  "${MAPLIBRE_NATIVE_GODOT_ADDON_DIR}/bin")
+
+set_target_properties(maplibre_native_godot PROPERTIES
+  LIBRARY_OUTPUT_DIRECTORY "${MAPLIBRE_NATIVE_GODOT_BIN_DIR}"
+  RUNTIME_OUTPUT_DIRECTORY "${MAPLIBRE_NATIVE_GODOT_BIN_DIR}"
+  ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
+
 target_include_directories(maplibre_native_godot PRIVATE
   "${CMAKE_SOURCE_DIR}/src"
   "${MLN_SOURCE_DIR}/include"
@@ -149,7 +159,7 @@ if(WIN32)
     add_custom_command(TARGET maplibre_native_godot POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${_wgpu_dll}"
-        "${CMAKE_SOURCE_DIR}/bin/wgpu_native.dll"
+        "${MAPLIBRE_NATIVE_GODOT_BIN_DIR}/wgpu_native.dll"
       COMMENT "Copying wgpu_native.dll to bin/")
   else()
     message(WARNING
@@ -173,11 +183,11 @@ elseif(APPLE)
     add_custom_command(TARGET maplibre_native_godot POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${_wgpu_dylib}"
-        "${CMAKE_SOURCE_DIR}/bin/libwgpu_native.dylib"
+        "${MAPLIBRE_NATIVE_GODOT_BIN_DIR}/libwgpu_native.dylib"
       # Fix the copied dylib's own install name to use @rpath
       COMMAND install_name_tool -id
         "@rpath/libwgpu_native.dylib"
-        "${CMAKE_SOURCE_DIR}/bin/libwgpu_native.dylib"
+        "${MAPLIBRE_NATIVE_GODOT_BIN_DIR}/libwgpu_native.dylib"
       # Fix the extension's reference to wgpu_native (the recorded path uses deps/)
       COMMAND install_name_tool -change
         "${_wgpu_deps_dylib}"
@@ -236,8 +246,8 @@ if(WIN32)
     set(MLNG_OUTPUT_NAME "maplibre_native_godot.windows.template_debug.x86_64")
   endif()
   set_target_properties(maplibre_native_godot PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin"
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin"
+    LIBRARY_OUTPUT_DIRECTORY "${MAPLIBRE_NATIVE_GODOT_BIN_DIR}"
+    RUNTIME_OUTPUT_DIRECTORY "${MAPLIBRE_NATIVE_GODOT_BIN_DIR}"
     PREFIX ""
     OUTPUT_NAME "${MLNG_OUTPUT_NAME}"
   )
@@ -254,8 +264,8 @@ elseif(APPLE)
     set(MLNG_OUTPUT_NAME "maplibre_native_godot.macos.template_debug.${_arch}")
   endif()
   set_target_properties(maplibre_native_godot PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin"
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin"
+    LIBRARY_OUTPUT_DIRECTORY "${MAPLIBRE_NATIVE_GODOT_BIN_DIR}"
+    RUNTIME_OUTPUT_DIRECTORY "${MAPLIBRE_NATIVE_GODOT_BIN_DIR}"
     PREFIX "lib"
     OUTPUT_NAME "${MLNG_OUTPUT_NAME}"
   )
@@ -266,8 +276,8 @@ else()
     set(MLNG_OUTPUT_NAME "maplibre_native_godot.linux.template_debug.x86_64")
   endif()
   set_target_properties(maplibre_native_godot PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin"
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin"
+    LIBRARY_OUTPUT_DIRECTORY "${MAPLIBRE_NATIVE_GODOT_BIN_DIR}"
+    RUNTIME_OUTPUT_DIRECTORY "${MAPLIBRE_NATIVE_GODOT_BIN_DIR}"
     PREFIX "lib"
     OUTPUT_NAME "${MLNG_OUTPUT_NAME}"
   )

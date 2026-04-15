@@ -33,4 +33,4 @@ cmake -S "$ROOT_DIR" \
 
 cmake --build "$BUILD_DIR" --parallel
 
-printf 'Built GDExtension in %s and emitted binaries into %s/bin\n' "$BUILD_DIR" "$ROOT_DIR"
+printf 'Built GDExtension in %s and emitted binaries into %s/addons/maplibre_native_godot/bin\n' "$BUILD_DIR" "$ROOT_DIR"

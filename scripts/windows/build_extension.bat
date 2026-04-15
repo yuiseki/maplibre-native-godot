@@ -102,7 +102,7 @@ if errorlevel 1 (
 
 echo.
 echo BUILD SUCCESS
-echo Extension DLL: %ROOT_DIR%\bin\maplibre_native_godot.windows.template_release.x86_64.dll
-echo Runtime DLL:   %ROOT_DIR%\bin\wgpu_native.dll
+echo Extension DLL: %ROOT_DIR%\addons\maplibre_native_godot\bin\maplibre_native_godot.windows.template_release.x86_64.dll
+echo Runtime DLL:   %ROOT_DIR%\addons\maplibre_native_godot\bin\wgpu_native.dll
 echo.
-echo Make sure bin\wgpu_native.dll is present before launching Godot.
+echo Make sure addons\maplibre_native_godot\bin\wgpu_native.dll is present before launching Godot.
