@@ -147,13 +147,17 @@ jobs:
           cmake -S maplibre-native `
             -B build/maplibre-native-windows -G Ninja `
             -DCMAKE_BUILD_TYPE=Release `
-            -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" `
             -DVCPKG_TARGET_TRIPLET=x64-windows -DVCPKG_HOST_TRIPLET=x64-windows `
-            -DVCPKG_INSTALLED_DIR="${{ github.workspace }}/build/maplibre-native-windows/vcpkg_installed" `
             -DMLN_WITH_WEBGPU=ON -DMLN_WEBGPU_IMPL_WGPU=ON -DMLN_CREATE_AMALGAMATION=OFF `
             -DMLN_WITH_GLFW=OFF -DMLN_WITH_QT=OFF -DMLN_WITH_TESTS=OFF `
             -DMLN_WITH_BENCHMARKS=OFF -DMLN_WITH_RENDER_TESTS=OFF
           cmake --build build/maplibre-native-windows --target mbgl-core --parallel
+      - name: Find vcpkg_installed directory
+        id: vcpkg-dir
+        shell: bash
+        run: |
+          VCPKG_DIR=$(find build/maplibre-native-windows -path "*/vcpkg_installed/x64-windows" -type d | head -1)
+          echo "path=$(cd "$VCPKG_DIR" && pwd)" >> "$GITHUB_OUTPUT"
       - name: Build GDExtension
         run: |
           cmake -S . `
@@ -161,7 +165,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release `
             -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" `
             -DVCPKG_TARGET_TRIPLET=x64-windows -DVCPKG_MANIFEST_MODE=OFF `
-            -DCMAKE_PREFIX_PATH="${{ github.workspace }}/build/maplibre-native-windows/vcpkg_installed/x64-windows" `
+            -DCMAKE_PREFIX_PATH="${{ steps.vcpkg-dir.outputs.path }}" `
             -DMLN_SOURCE_DIR="${{ github.workspace }}/maplibre-native" `
             -DMLN_BUILD_DIR="${{ github.workspace }}/build/maplibre-native-windows" `
             "-DCMAKE_CXX_FLAGS_DEBUG=/MDd /Zi /Ob0 /Od /RTC1"
