@@ -148,12 +148,17 @@ or use `build_extension_reuse_slint.bat` which handles this for you.
 
 ---
 
-### 6. getCameraOptions().zoom returns nullopt on Windows (wgpu-Vulkan)
+### 6. getCameraOptions().zoom returns nullopt -- caused by ABI mismatch
 
-On the Windows wgpu-Vulkan backend, `mbgl::Map::getCameraOptions().zoom` returns
-`std::nullopt` on every call. This means any code that does `cam.zoom.value_or(fallback)`
-must provide a meaningful fallback — using a hardcoded constant (e.g. `10.0`) will
-make the zoom animation appear broken because `start_zoom == target_zoom`.
+When `MLN_SOURCE_DIR` and `MLN_BUILD_DIR` point to different commits (see gotcha #1),
+`mbgl::Map::getCameraOptions().zoom` can return `std::nullopt` on every call.
+This was initially suspected to be a wgpu-Vulkan backend issue, but the root cause
+was confirmed to be ABI mismatch between headers and binaries. Unifying the commits
+resolved the nullopt entirely.
+
+The `current_zoom_hint` fallback in the code remains as a defensive guard, but if
+you encounter this symptom, **check gotcha #1 first** -- it is almost certainly an
+ABI mismatch rather than a backend bug.
 
 **Fix (already in `src/map_view_node.cpp`):** the node tracks `current_zoom`
 itself and passes it as `current_zoom_hint` to `MapRuntime::fly_to`, which
