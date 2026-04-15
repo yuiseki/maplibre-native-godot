@@ -49,8 +49,8 @@ jobs:
           path: |
             build/maplibre-native-windows
             maplibre-native/vendor/wgpu-native/target/release/wgpu_native.dll
-            C:/vcpkg/installed/x64-windows
-          key: mln-windows-${{ steps.mln-sha.outputs.sha }}-v4
+            maplibre-native/vcpkg_installed
+          key: mln-windows-${{ steps.mln-sha.outputs.sha }}-v5
 
       - name: Setup Rust
         if: steps.cache-mln.outputs.cache-hit != 'true'
@@ -79,11 +79,6 @@ jobs:
           path: build/godot-extension-windows/godot-cpp
           key: godot-cpp-windows-${{ env.GODOT_CPP_BRANCH }}-Release
 
-      # Option B: use the runner's pre-installed vcpkg for both maplibre-native
-      # and the GDExtension build.  maplibre-native ships custom vcpkg triplets;
-      # we point VCPKG_OVERLAY_TRIPLETS there so the internal build logic still
-      # applies while packages land in VCPKG_INSTALLATION_ROOT/installed/
-      # (a known, stable path) instead of the ephemeral Z:/ binary-cache drive.
       - name: Build maplibre-native
         if: steps.cache-mln.outputs.cache-hit != 'true'
         env:
@@ -107,10 +102,37 @@ jobs:
             -DMLN_WITH_RENDER_TESTS=OFF
           cmake --build build/maplibre-native-windows --target mbgl-core --parallel
 
-      # dlfcn-win32, libuv, libpng, zlib are required by the GDExtension's
-      # CMakeLists.txt (find_package) but are not installed by the
-      # maplibre-native build step. Install them explicitly so they land in
-      # $VCPKG_INSTALLATION_ROOT/installed/x64-windows.
+      # Locate where maplibre-native's vcpkg installed ICU so we know which
+      # path to hand to the GDExtension cmake step.
+      - name: Locate ICU libs after maplibre-native build
+        if: steps.cache-mln.outputs.cache-hit != 'true'
+        shell: powershell
+        run: |
+          Write-Host "=== Searching for ICU libs ==="
+          $paths = @(
+            "maplibre-native/vcpkg_installed/x64-windows/lib",
+            "build/maplibre-native-windows/vcpkg_installed/x64-windows/lib",
+            "C:/vcpkg/installed/x64-windows/lib"
+          )
+          foreach ($p in $paths) {
+            if (Test-Path $p) {
+              $icu = Get-ChildItem $p -Filter "icu*.lib" -ErrorAction SilentlyContinue
+              if ($icu) { Write-Host "FOUND ICU at $p : $($icu.Name -join ', ')" }
+              else       { Write-Host "$p exists but no ICU libs" }
+            } else {
+              Write-Host "$p does not exist"
+            }
+          }
+          if (Test-Path "Z:\") {
+            Write-Host "Z:\ exists — searching for ICU..."
+            Get-ChildItem "Z:\" -Recurse -Filter "icui18n*.lib" -ErrorAction SilentlyContinue |
+              Select-Object -First 5 | ForEach-Object { Write-Host "Z:\: $($_.FullName)" }
+          } else { Write-Host "Z:\ does not exist" }
+
+      # dlfcn-win32, libuv, libpng, zlib are GDExtension-only deps not pulled
+      # in by maplibre-native. ICU is intentionally excluded: maplibre-native's
+      # own vcpkg installs ICU 74 (matching mbgl-core.lib); running
+      # 'vcpkg install icu' would upgrade it to a newer version causing LNK2019.
       - name: Install GDExtension vcpkg dependencies
         run: |
           & "$env:VCPKG_INSTALLATION_ROOT\vcpkg.exe" install `
@@ -128,7 +150,7 @@ jobs:
             -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" `
             -DVCPKG_TARGET_TRIPLET=x64-windows `
             -DVCPKG_MANIFEST_MODE=OFF `
-            -DCMAKE_PREFIX_PATH="$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows" `
+            "-DCMAKE_PREFIX_PATH=${{ github.workspace }}/maplibre-native/vcpkg_installed/x64-windows;$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows" `
             -DMLN_SOURCE_DIR="${{ github.workspace }}/maplibre-native" `
             -DMLN_BUILD_DIR="${{ github.workspace }}/build/maplibre-native-windows" `
             "-DCMAKE_CXX_FLAGS_DEBUG=/MDd /Zi /Ob0 /Od /RTC1"
