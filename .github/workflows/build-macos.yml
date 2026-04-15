@@ -22,17 +22,6 @@ jobs:
       - name: Install system packages
         run: brew install cmake ninja pkg-config libuv
 
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Cache maplibre-native build
-        uses: actions/cache@v4
-        with:
-          path: build/maplibre-native-macos
-          key: mln-macos-${{ env.MLN_BRANCH }}-${{ hashFiles('scripts/macos/build_maplibre_native.sh') }}
-          restore-keys: |
-            mln-macos-${{ env.MLN_BRANCH }}-
-
       - name: Checkout maplibre-native
         uses: actions/checkout@v4
         with:
@@ -40,6 +29,21 @@ jobs:
           ref: ${{ env.MLN_BRANCH }}
           path: maplibre-native
           submodules: recursive
+
+      - name: Get maplibre-native commit SHA
+        id: mln-sha
+        run: echo "sha=$(git -C maplibre-native rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache maplibre-native build
+        id: cache-mln
+        uses: actions/cache@v4
+        with:
+          path: build/maplibre-native-macos
+          key: mln-macos-${{ steps.mln-sha.outputs.sha }}
+
+      - name: Install Rust toolchain
+        if: steps.cache-mln.outputs.cache-hit != 'true'
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Checkout godot-cpp
         uses: actions/checkout@v4
@@ -50,6 +54,7 @@ jobs:
           submodules: true
 
       - name: Build maplibre-native
+        if: steps.cache-mln.outputs.cache-hit != 'true'
         run: |
           cmake -S maplibre-native \
             -B build/maplibre-native-macos \
