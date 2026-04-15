@@ -54,6 +54,38 @@ if(WIN32)
   find_package(dlfcn-win32 CONFIG REQUIRED)
   find_package(libuv CONFIG REQUIRED)
   find_package(ICU COMPONENTS i18n uc data QUIET)
+
+  # MapboxCoreTargets.cmake references ICU::i18n/uc/data as IMPORTED targets.
+  # If find_package(ICU) failed (ICU not in CMAKE_PREFIX_PATH on CI), try
+  # maplibre-native's internal vcpkg installed directory where Get-VendorPackages.ps1
+  # installs packages, then fall back to empty stubs so the include() below does
+  # not abort. Without real ICU libs the linker may still fail, but at least
+  # cmake configure will complete.
+  if(NOT ICU_FOUND)
+    set(_mln_vcpkg_installed
+        "${MLN_SOURCE_DIR}/platform/windows/vendor/vcpkg/installed/x64-windows")
+    if(EXISTS "${_mln_vcpkg_installed}/lib/icuin.lib")
+      message(STATUS "ICU: falling back to maplibre-native internal vcpkg at ${_mln_vcpkg_installed}")
+      add_library(ICU::i18n INTERFACE IMPORTED)
+      set_target_properties(ICU::i18n PROPERTIES
+        INTERFACE_LINK_LIBRARIES "${_mln_vcpkg_installed}/lib/icuin.lib")
+      add_library(ICU::uc INTERFACE IMPORTED)
+      set_target_properties(ICU::uc PROPERTIES
+        INTERFACE_LINK_LIBRARIES "${_mln_vcpkg_installed}/lib/icuuc.lib")
+      add_library(ICU::data INTERFACE IMPORTED)
+      set_target_properties(ICU::data PROPERTIES
+        INTERFACE_LINK_LIBRARIES "${_mln_vcpkg_installed}/lib/icudt.lib")
+    else()
+      message(WARNING "ICU not found; creating empty stub targets. Linker may fail.")
+      foreach(_icu_comp i18n uc data)
+        if(NOT TARGET ICU::${_icu_comp})
+          add_library(ICU::${_icu_comp} INTERFACE IMPORTED)
+        endif()
+      endforeach()
+    endif()
+    unset(_mln_vcpkg_installed)
+  endif()
+
   find_package(PNG REQUIRED)
 
   include("${_mln_targets}")

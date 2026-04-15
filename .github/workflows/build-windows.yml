@@ -49,8 +49,8 @@ jobs:
           path: |
             build/maplibre-native-windows
             maplibre-native/vendor/wgpu-native/target/release/wgpu_native.dll
-            maplibre-native/vcpkg_installed
-          key: mln-windows-${{ steps.mln-sha.outputs.sha }}-v5
+            maplibre-native/platform/windows/vendor/vcpkg/installed
+          key: mln-windows-${{ steps.mln-sha.outputs.sha }}-v6
 
       - name: Setup Rust
         if: steps.cache-mln.outputs.cache-hit != 'true'
@@ -102,8 +102,9 @@ jobs:
             -DMLN_WITH_RENDER_TESTS=OFF
           cmake --build build/maplibre-native-windows --target mbgl-core --parallel
 
-      # Locate where maplibre-native's vcpkg installed ICU so we know which
-      # path to hand to the GDExtension cmake step.
+      # Locate where maplibre-native's vcpkg installed ICU.
+      # Get-VendorPackages.ps1 uses maplibre-native's internal vcpkg (mounted as a
+      # virtual drive) and installs packages to vendor/vcpkg/installed/.
       - name: Locate ICU libs after maplibre-native build
         if: steps.cache-mln.outputs.cache-hit != 'true'
         continue-on-error: true
@@ -111,6 +112,7 @@ jobs:
         run: |
           Write-Host "=== Searching for ICU libs ==="
           $paths = @(
+            "maplibre-native/platform/windows/vendor/vcpkg/installed/x64-windows/lib",
             "maplibre-native/vcpkg_installed/x64-windows/lib",
             "build/maplibre-native-windows/vcpkg_installed/x64-windows/lib",
             "C:/vcpkg/installed/x64-windows/lib"
@@ -124,11 +126,13 @@ jobs:
               Write-Host "$p does not exist"
             }
           }
-          if (Test-Path "Z:\") {
-            Write-Host "Z:\ exists - searching for ICU..."
-            Get-ChildItem "Z:\" -Recurse -Filter "icui18n*.lib" -ErrorAction SilentlyContinue |
-              Select-Object -First 5 | ForEach-Object { Write-Host "Z:\: $($_.FullName)" }
-          } else { Write-Host "Z:\ does not exist" }
+          Write-Host "=== MapboxCoreTargets ICU references ==="
+          if (Test-Path "build/maplibre-native-windows/MapboxCoreTargets.cmake") {
+            Select-String -Path "build/maplibre-native-windows/MapboxCoreTargets.cmake" -Pattern "ICU" |
+              ForEach-Object { Write-Host $_.Line }
+          } else {
+            Write-Host "MapboxCoreTargets.cmake not found"
+          }
 
       # dlfcn-win32, libuv, libpng, zlib are GDExtension-only deps not pulled
       # in by maplibre-native. ICU is intentionally excluded: maplibre-native's
@@ -151,7 +155,7 @@ jobs:
             -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" `
             -DVCPKG_TARGET_TRIPLET=x64-windows `
             -DVCPKG_MANIFEST_MODE=OFF `
-            "-DCMAKE_PREFIX_PATH=${{ github.workspace }}/maplibre-native/vcpkg_installed/x64-windows;$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows" `
+            "-DCMAKE_PREFIX_PATH=${{ github.workspace }}/maplibre-native/platform/windows/vendor/vcpkg/installed/x64-windows;$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows" `
             -DMLN_SOURCE_DIR="${{ github.workspace }}/maplibre-native" `
             -DMLN_BUILD_DIR="${{ github.workspace }}/build/maplibre-native-windows" `
             "-DCMAKE_CXX_FLAGS_DEBUG=/MDd /Zi /Ob0 /Od /RTC1"
