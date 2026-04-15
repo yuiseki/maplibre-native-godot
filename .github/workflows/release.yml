@@ -1,0 +1,200 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+env:
+  MLN_REPO: maplibre/maplibre-native
+  MLN_BRANCH: main
+  GODOT_CPP_BRANCH: godot-4.3-stable
+
+jobs:
+  # -----------------------------------------------------------------------
+  # Linux x86_64
+  # -----------------------------------------------------------------------
+  build-linux:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build python3 \
+            libssl-dev libcurl4-openssl-dev libuv1-dev \
+            libpng-dev libjpeg-dev libwebp-dev libbz2-dev zlib1g-dev \
+            libicu-dev libgl1-mesa-dev libvulkan-dev
+      - uses: actions/checkout@v4
+        with: { repository: "${{ env.MLN_REPO }}", ref: "${{ env.MLN_BRANCH }}", path: maplibre-native, submodules: recursive }
+      - id: mln-sha
+        run: echo "sha=$(git -C maplibre-native rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        id: cache-mln
+        with:
+          path: |
+            build/maplibre-native-linux
+            maplibre-native/vendor/wgpu-native/target/x86_64-unknown-linux-gnu/release/libwgpu_native.a
+          key: mln-linux-${{ steps.mln-sha.outputs.sha }}
+      - uses: dtolnay/rust-toolchain@stable
+        if: steps.cache-mln.outputs.cache-hit != 'true'
+      - uses: actions/checkout@v4
+        with: { repository: godotengine/godot-cpp, ref: "${{ env.GODOT_CPP_BRANCH }}", path: third_party/godot-cpp, submodules: true }
+      - uses: actions/cache@v4
+        with: { path: build/godot-extension-linux/godot-cpp, key: "godot-cpp-linux-${{ env.GODOT_CPP_BRANCH }}-RelWithDebInfo" }
+      - name: Build maplibre-native
+        if: steps.cache-mln.outputs.cache-hit != 'true'
+        run: |
+          cmake -S maplibre-native -B build/maplibre-native-linux -G Ninja \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+            -DMLN_WITH_WEBGPU=ON -DMLN_WEBGPU_IMPL_WGPU=ON -DMLN_CREATE_AMALGAMATION=OFF \
+            -DMLN_WITH_GLFW=OFF -DMLN_WITH_QT=OFF -DMLN_WITH_TESTS=OFF \
+            -DMLN_WITH_BENCHMARKS=OFF -DMLN_WITH_RENDER_TESTS=OFF \
+            -DCMAKE_CXX_FLAGS="-Wno-error=shadow"
+          cmake --build build/maplibre-native-linux --target mbgl-core --parallel
+      - name: Build GDExtension
+        run: |
+          cmake -S . -B build/godot-extension-linux -G Ninja \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DMLN_SOURCE_DIR=${{ github.workspace }}/maplibre-native \
+            -DMLN_BUILD_DIR=${{ github.workspace }}/build/maplibre-native-linux
+          cmake --build build/godot-extension-linux --parallel
+      - uses: actions/upload-artifact@v4
+        with: { name: linux-x86_64, path: "addons/maplibre_native_godot/bin/*linux*" }
+
+  # -----------------------------------------------------------------------
+  # macOS arm64
+  # -----------------------------------------------------------------------
+  build-macos:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - run: brew install cmake ninja pkg-config libuv
+      - uses: actions/checkout@v4
+        with: { repository: "${{ env.MLN_REPO }}", ref: "${{ env.MLN_BRANCH }}", path: maplibre-native, submodules: recursive }
+      - id: mln-sha
+        run: echo "sha=$(git -C maplibre-native rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        id: cache-mln
+        with:
+          path: |
+            build/maplibre-native-macos
+            maplibre-native/vendor/wgpu-native/target/release/libwgpu_native.dylib
+            maplibre-native/vendor/wgpu-native/target/release/deps/libwgpu_native.dylib
+          key: mln-macos-${{ steps.mln-sha.outputs.sha }}
+      - uses: dtolnay/rust-toolchain@stable
+        if: steps.cache-mln.outputs.cache-hit != 'true'
+      - uses: actions/checkout@v4
+        with: { repository: godotengine/godot-cpp, ref: "${{ env.GODOT_CPP_BRANCH }}", path: third_party/godot-cpp, submodules: true }
+      - uses: actions/cache@v4
+        with: { path: build/godot-extension-macos/godot-cpp, key: "godot-cpp-macos-${{ env.GODOT_CPP_BRANCH }}-RelWithDebInfo" }
+      - name: Build maplibre-native
+        if: steps.cache-mln.outputs.cache-hit != 'true'
+        run: |
+          cmake -S maplibre-native -B build/maplibre-native-macos -G Ninja \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DMLN_WITH_WEBGPU=ON -DMLN_WEBGPU_IMPL_WGPU=ON -DMLN_CREATE_AMALGAMATION=OFF \
+            -DMLN_WITH_GLFW=OFF -DMLN_WITH_QT=OFF -DMLN_WITH_TESTS=OFF \
+            -DMLN_WITH_BENCHMARKS=OFF -DMLN_WITH_RENDER_TESTS=OFF \
+            -DCMAKE_CXX_FLAGS="-Wno-error=shadow"
+          cmake --build build/maplibre-native-macos --target mbgl-core --parallel
+      - name: Build GDExtension
+        run: |
+          cmake -S . -B build/godot-extension-macos -G Ninja \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DMLN_SOURCE_DIR=${{ github.workspace }}/maplibre-native \
+            -DMLN_BUILD_DIR=${{ github.workspace }}/build/maplibre-native-macos
+          cmake --build build/godot-extension-macos --parallel
+      - uses: actions/upload-artifact@v4
+        with: { name: macos-arm64, path: "addons/maplibre_native_godot/bin/*macos*" }
+
+  # -----------------------------------------------------------------------
+  # Windows x86_64
+  # -----------------------------------------------------------------------
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - run: git config --system core.longpaths true
+      - uses: actions/checkout@v4
+      - uses: ilammy/msvc-dev-cmd@v1
+        with: { arch: x64 }
+      - run: choco install ninja
+      - uses: actions/checkout@v4
+        with: { repository: "${{ env.MLN_REPO }}", ref: "${{ env.MLN_BRANCH }}", path: maplibre-native, submodules: recursive }
+      - id: mln-sha
+        shell: bash
+        run: echo "sha=$(git -C maplibre-native rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        id: cache-mln
+        with: { path: build/maplibre-native-windows, key: "mln-windows-${{ steps.mln-sha.outputs.sha }}" }
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        if: steps.cache-mln.outputs.cache-hit != 'true'
+      - uses: actions/github-script@v7
+        if: steps.cache-mln.outputs.cache-hit != 'true'
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+      - uses: actions/checkout@v4
+        with: { repository: godotengine/godot-cpp, ref: "${{ env.GODOT_CPP_BRANCH }}", path: third_party/godot-cpp, submodules: true }
+      - uses: actions/cache@v4
+        with: { path: build/godot-extension-windows/godot-cpp, key: "godot-cpp-windows-${{ env.GODOT_CPP_BRANCH }}-Release" }
+      - name: Build maplibre-native
+        if: steps.cache-mln.outputs.cache-hit != 'true'
+        run: |
+          cmake -S maplibre-native `
+            -B build/maplibre-native-windows -G Ninja `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" `
+            -DVCPKG_TARGET_TRIPLET=x64-windows -DVCPKG_HOST_TRIPLET=x64-windows `
+            -DMLN_WITH_WEBGPU=ON -DMLN_WEBGPU_IMPL_WGPU=ON -DMLN_CREATE_AMALGAMATION=OFF `
+            -DMLN_WITH_GLFW=OFF -DMLN_WITH_QT=OFF -DMLN_WITH_TESTS=OFF `
+            -DMLN_WITH_BENCHMARKS=OFF -DMLN_WITH_RENDER_TESTS=OFF
+          cmake --build build/maplibre-native-windows --target mbgl-core --parallel
+      - name: Build GDExtension
+        run: |
+          cmake -S . `
+            -B build/godot-extension-windows -G Ninja `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" `
+            -DVCPKG_TARGET_TRIPLET=x64-windows -DVCPKG_MANIFEST_MODE=OFF `
+            -DCMAKE_PREFIX_PATH="build/maplibre-native-windows/vcpkg_installed/x64-windows" `
+            -DMLN_SOURCE_DIR="${{ github.workspace }}/maplibre-native" `
+            -DMLN_BUILD_DIR="${{ github.workspace }}/build/maplibre-native-windows" `
+            "-DCMAKE_CXX_FLAGS_DEBUG=/MDd /Zi /Ob0 /Od /RTC1"
+          cmake --build build/godot-extension-windows --parallel
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-x86_64
+          path: |
+            addons/maplibre_native_godot/bin/*windows*
+            addons/maplibre_native_godot/bin/wgpu_native.dll
+
+  # -----------------------------------------------------------------------
+  # Package all platforms and create GitHub Release
+  # -----------------------------------------------------------------------
+  release:
+    needs: [build-linux, build-macos, build-windows]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: addons/maplibre_native_godot/bin/
+          merge-multiple: true
+
+      - name: List release binaries
+        run: ls -la addons/maplibre_native_godot/bin/
+
+      - name: Package release
+        run: ./scripts/package_release.sh
+        env:
+          VERSION: ${{ github.ref_name }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.zip
+          generate_release_notes: true

@@ -3,7 +3,6 @@ name: Build Windows x86_64
 on:
   push:
     branches: [main]
-    tags: ["v*"]
   pull_request:
     branches: [main]
 
@@ -123,31 +122,3 @@ jobs:
             addons/maplibre_native_godot/bin/*windows*
             addons/maplibre_native_godot/bin/wgpu_native.dll
           retention-days: 7
-
-  release:
-    needs: build-windows
-    if: startsWith(github.ref, 'refs/tags/v')
-    runs-on: windows-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Download Windows artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: windows-x86_64
-          path: addons/maplibre_native_godot/bin/
-
-      - name: Package release
-        shell: bash
-        run: ./scripts/package_release.sh
-        env:
-          VERSION: ${{ github.ref_name }}
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: dist/*.zip
-          generate_release_notes: true
