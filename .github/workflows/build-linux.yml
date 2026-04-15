@@ -1,0 +1,119 @@
+name: Build Linux x86_64
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+
+env:
+  MLN_REPO: yuiseki/maplibre-native
+  MLN_BRANCH: macos-webgpu-amalgam-bundled-wgpu
+  GODOT_CPP_BRANCH: godot-4.3-stable
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout maplibre-native-godot
+        uses: actions/checkout@v4
+
+      - name: Install system packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            cmake ninja-build python3 \
+            libssl-dev libcurl4-openssl-dev libuv1-dev \
+            libpng-dev libjpeg-dev libwebp-dev libbz2-dev zlib1g-dev \
+            libicu-dev libgl1-mesa-dev libvulkan-dev
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache maplibre-native build
+        uses: actions/cache@v4
+        with:
+          path: build/maplibre-native-linux
+          key: mln-linux-${{ env.MLN_BRANCH }}-${{ hashFiles('scripts/linux/build_maplibre_native.sh') }}
+          restore-keys: |
+            mln-linux-${{ env.MLN_BRANCH }}-
+
+      - name: Checkout maplibre-native
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.MLN_REPO }}
+          ref: ${{ env.MLN_BRANCH }}
+          path: maplibre-native
+          submodules: recursive
+
+      - name: Checkout godot-cpp
+        uses: actions/checkout@v4
+        with:
+          repository: godotengine/godot-cpp
+          ref: ${{ env.GODOT_CPP_BRANCH }}
+          path: third_party/godot-cpp
+          submodules: true
+
+      - name: Build maplibre-native
+        run: |
+          cmake -S maplibre-native \
+            -B build/maplibre-native-linux \
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+            -DMLN_WITH_WEBGPU=ON \
+            -DMLN_WEBGPU_IMPL_WGPU=ON \
+            -DMLN_CREATE_AMALGAMATION=ON
+          cmake --build build/maplibre-native-linux --target mbgl-core --parallel
+
+      - name: Build GDExtension (Release)
+        run: |
+          cmake -S . \
+            -B build/godot-extension-linux \
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DMLN_SOURCE_DIR=${{ github.workspace }}/maplibre-native \
+            -DMLN_BUILD_DIR=${{ github.workspace }}/build/maplibre-native-linux
+          cmake --build build/godot-extension-linux --parallel
+
+      - name: Verify built binaries
+        run: |
+          ls -la addons/maplibre_native_godot/bin/
+          file addons/maplibre_native_godot/bin/*.so
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-x86_64
+          path: addons/maplibre_native_godot/bin/*linux*
+          retention-days: 7
+
+  release:
+    needs: build-linux
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Linux artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-x86_64
+          path: addons/maplibre_native_godot/bin/
+
+      - name: Package release
+        run: |
+          VERSION="${GITHUB_REF_NAME}"
+          ./scripts/package_release.sh
+        env:
+          VERSION: ${{ github.ref_name }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.zip
+          generate_release_notes: true
