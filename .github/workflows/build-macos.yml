@@ -38,7 +38,10 @@ jobs:
         id: cache-mln
         uses: actions/cache@v4
         with:
-          path: build/maplibre-native-macos
+          path: |
+            build/maplibre-native-macos
+            maplibre-native/vendor/wgpu-native/target/release/libwgpu_native.dylib
+            maplibre-native/vendor/wgpu-native/target/release/deps/libwgpu_native.dylib
           key: mln-macos-${{ steps.mln-sha.outputs.sha }}
 
       - name: Install Rust toolchain
