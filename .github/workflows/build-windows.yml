@@ -106,6 +106,7 @@ jobs:
       # path to hand to the GDExtension cmake step.
       - name: Locate ICU libs after maplibre-native build
         if: steps.cache-mln.outputs.cache-hit != 'true'
+        continue-on-error: true
         shell: powershell
         run: |
           Write-Host "=== Searching for ICU libs ==="
@@ -124,7 +125,7 @@ jobs:
             }
           }
           if (Test-Path "Z:\") {
-            Write-Host "Z:\ exists — searching for ICU..."
+            Write-Host "Z:\ exists - searching for ICU..."
             Get-ChildItem "Z:\" -Recurse -Filter "icui18n*.lib" -ErrorAction SilentlyContinue |
               Select-Object -First 5 | ForEach-Object { Write-Host "Z:\: $($_.FullName)" }
           } else { Write-Host "Z:\ does not exist" }
