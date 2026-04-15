@@ -29,6 +29,11 @@ This is not a zero-copy design. However, it is the path that currently matches
 Godot's renderer architecture, GDExtension boundaries, and texture ownership
 model without requiring deep engine patches.
 
+This is also consistent with the kind of integration pressure visible in the
+Godot ecosystem itself: proposals around native GPU texture sharing are framed
+as engine-level rendering work, not as something that can be solved cleanly in
+user-space with a small addon alone.
+
 The strategic constraint matters too: `maplibre-native` is increasingly
 WebGPU-oriented, while Godot is not centered on WebGPU. Chasing true
 cross-platform zero-copy sharing inside Godot would therefore require backend-
@@ -71,6 +76,19 @@ Concretely, this means:
   bottleneck is memory transfer, not map rendering alone.
 - This repository is not the right place to demonstrate a “shared WebGPU
   texture everywhere” story comparable to `maplibre-native-slint`.
+
+## References and reassessment trigger
+
+- Godot proposal: [godot-proposals#13143: Implement Native Spout/Syphon for GPU Texture Sharing](https://github.com/godotengine/godot-proposals/issues/13143)
+
+That proposal is not about `maplibre-native-godot` directly, but it is a good
+reference for the shape of the problem on the Godot side. The proposal assumes
+that true low-latency GPU sharing requires deep native integration around
+Viewport render targets, synchronization, and backend-specific graphics APIs.
+
+If Godot gains materially better native support for external GPU texture
+sharing, or if proposal `#13143` leads to a concrete engine capability that can
+be reused from GDExtension, this ADR should be revisited.
 
 ## Validation
 
