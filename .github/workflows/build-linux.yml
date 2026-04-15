@@ -59,6 +59,13 @@ jobs:
           path: third_party/godot-cpp
           submodules: true
 
+      - name: Cache godot-cpp build
+        id: cache-godot-cpp
+        uses: actions/cache@v4
+        with:
+          path: build/godot-extension-linux/godot-cpp
+          key: godot-cpp-linux-${{ env.GODOT_CPP_BRANCH }}-RelWithDebInfo
+
       - name: Build maplibre-native
         if: steps.cache-mln.outputs.cache-hit != 'true'
         run: |
