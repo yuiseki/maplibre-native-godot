@@ -90,8 +90,6 @@ func _build_ui() -> void:
 func _apply_initial_state() -> void:
 	map_node.set_style_url(STYLE_URLS[0])
 	map_node.fly_to(0.0, 0.0, 1.0)
-	map_node.set_pitch(0.0)
-	map_node.set_bearing(0.0)
 	_refresh_labels()
 
 

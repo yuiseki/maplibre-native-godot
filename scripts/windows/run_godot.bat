@@ -1,16 +1,20 @@
 @echo off
 :: Launch the Godot project on Windows.
-:: Looks for Godot in tools\godot-4.3\, then in PATH.
+:: Looks for Godot 4.6 first, then 4.3, then in PATH.
 
 setlocal
 
 set ROOT_DIR=%~dp0..\..
-set LOCAL_GODOT=%ROOT_DIR%\tools\godot-4.3\Godot_v4.3-stable_win64.exe
 
 if defined GODOT_BIN goto :run
 
-if exist "%LOCAL_GODOT%" (
-    set GODOT_BIN=%LOCAL_GODOT%
+if exist "%ROOT_DIR%\tools\godot-4.6\Godot_v4.6.2-stable_win64.exe" (
+    set GODOT_BIN=%ROOT_DIR%\tools\godot-4.6\Godot_v4.6.2-stable_win64.exe
+    goto :run
+)
+
+if exist "%ROOT_DIR%\tools\godot-4.3\Godot_v4.3-stable_win64.exe" (
+    set GODOT_BIN=%ROOT_DIR%\tools\godot-4.3\Godot_v4.3-stable_win64.exe
     goto :run
 )
 
@@ -25,7 +29,7 @@ where godot >nul 2>&1 && (
 )
 
 echo ERROR: Godot binary not found.
-echo Place Godot_v4.3-stable_win64.exe in tools\godot-4.3\, set GODOT_BIN, or add Godot to PATH.
+echo Place Godot_v4.6.2-stable_win64.exe in tools\godot-4.6\, or Godot_v4.3-stable_win64.exe in tools\godot-4.3\
 exit /b 1
 
 :run

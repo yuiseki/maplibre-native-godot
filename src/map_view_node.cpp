@@ -64,11 +64,12 @@ String MapLibreMap::get_style_url() const {
 // ---------------------------------------------------------------------------
 
 void MapLibreMap::fly_to(double p_lat, double p_lon, double p_zoom) {
+    const double prev_zoom = current_zoom; // capture before overwriting
     current_lat  = p_lat;
     current_lon  = p_lon;
     current_zoom = p_zoom;
     if (runtime_)
-        runtime_->fly_to(p_lat, p_lon, p_zoom);
+        runtime_->fly_to(p_lat, p_lon, p_zoom, prev_zoom);
 }
 
 void MapLibreMap::jump_to(double p_lat, double p_lon, double p_zoom,
@@ -186,16 +187,10 @@ void MapLibreMap::_notification(int p_what) {
             return;
         }
 
-        // Reuse the existing ImageTexture to avoid per-frame reallocation.
-        // If dimensions changed (after a resize), create a new texture.
-        Ref<ImageTexture> tex = get_texture();
-        if (tex.is_valid() &&
-            tex->get_width()  == static_cast<int32_t>(result.width) &&
-            tex->get_height() == static_cast<int32_t>(result.height)) {
-            tex->update(image);
-        } else {
-            set_texture(ImageTexture::create_from_image(image));
-        }
+        // ImageTexture::update() is not reliable across Godot versions when
+        // used with godot-cpp bindings targeting an older API version.
+        // Always replace the texture to ensure the display updates every frame.
+        set_texture(ImageTexture::create_from_image(image));
     }
 }
 

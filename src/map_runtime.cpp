@@ -212,11 +212,14 @@ void MapRuntime::set_bearing(double bearing) {
     impl_->map.jumpTo(next);
 }
 
-void MapRuntime::fly_to(double lat, double lon, double zoom) {
+void MapRuntime::fly_to(double lat, double lon, double zoom, double current_zoom_hint) {
     const auto cam      = impl_->map.getCameraOptions();
     const mbgl::LatLng target{lat, lon};
     const mbgl::LatLng start = cam.center.value_or(target);
-    const double start_zoom  = cam.zoom.value_or(10.0);
+    // Prefer the camera's own zoom; fall back to the caller's tracked zoom
+    // (current_zoom_hint) rather than a hardcoded 10.0, because on Windows
+    // wgpu-Vulkan getCameraOptions().zoom may return nullopt even after jumpTo.
+    const double start_zoom  = cam.zoom.value_or(current_zoom_hint);
 
     // Approximate great-circle distance in degrees
     auto deg2rad = [](double d) { return d * M_PI / 180.0; };

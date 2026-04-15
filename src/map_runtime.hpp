@@ -41,7 +41,9 @@ public:
     void set_bearing(double bearing);
 
     // --- Camera (animated 2.5 s arc, ported from maplibre-native-slint) ---
-    void fly_to(double lat, double lon, double zoom);
+    // current_zoom_hint: caller's tracked zoom, used as fallback when
+    // getCameraOptions().zoom returns nullopt (observed on Windows/wgpu-Vulkan).
+    void fly_to(double lat, double lon, double zoom, double current_zoom_hint = 1.0);
 
     // --- Resize render target ---
     void resize(uint32_t width, uint32_t height);
