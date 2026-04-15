@@ -84,7 +84,8 @@ cmake -S "%ROOT_DIR%" ^
   -DCMAKE_PREFIX_PATH="%VCPKG_INSTALLED_X64%" ^
   -DGODOT_CPP_DIR="%GODOT_CPP_DIR%" ^
   -DMLN_SOURCE_DIR="%MLN_SOURCE_DIR%" ^
-  -DMLN_BUILD_DIR="%MLN_BUILD_DIR%"
+  -DMLN_BUILD_DIR="%MLN_BUILD_DIR%" ^
+  "-DCMAKE_CXX_FLAGS_DEBUG=/MDd /Zi /Ob0 /Od /RTC1"
 
 if errorlevel 1 (
     echo ERROR: cmake configure failed.
