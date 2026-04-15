@@ -188,9 +188,9 @@ void MapRuntime::jump_to(double lat, double lon, double zoom,
 void MapRuntime::set_pitch(double pitch) {
     const auto cam = impl_->map.getCameraOptions();
     mbgl::CameraOptions next;
-    next.center  = cam.center;
-    next.zoom    = cam.zoom;
-    next.bearing = cam.bearing;
+    next.center  = cam.center.value_or(mbgl::LatLng{0, 0});
+    next.zoom    = cam.zoom.value_or(1.0);
+    next.bearing = cam.bearing.value_or(0.0);
     next.pitch   = pitch;
     impl_->map.jumpTo(next);
 }
@@ -198,9 +198,9 @@ void MapRuntime::set_pitch(double pitch) {
 void MapRuntime::set_bearing(double bearing) {
     const auto cam = impl_->map.getCameraOptions();
     mbgl::CameraOptions next;
-    next.center  = cam.center;
-    next.zoom    = cam.zoom;
-    next.pitch   = cam.pitch;
+    next.center  = cam.center.value_or(mbgl::LatLng{0, 0});
+    next.zoom    = cam.zoom.value_or(1.0);
+    next.pitch   = cam.pitch.value_or(0.0);
     next.bearing = bearing;
     impl_->map.jumpTo(next);
 }
