@@ -116,7 +116,8 @@ jobs:
             dlfcn-win32:x64-windows `
             libuv:x64-windows `
             libpng:x64-windows `
-            zlib:x64-windows
+            zlib:x64-windows `
+            icu:x64-windows
 
       - name: Build GDExtension (Release)
         run: |
