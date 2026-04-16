@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout maplibre-native-godot
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install system packages
         run: |
@@ -28,7 +28,7 @@ jobs:
             libicu-dev libgl1-mesa-dev libvulkan-dev
 
       - name: Checkout maplibre-native
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: ${{ env.MLN_REPO }}
           ref: ${{ env.MLN_BRANCH }}
@@ -53,7 +53,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Checkout godot-cpp
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: godotengine/godot-cpp
           ref: ${{ env.GODOT_CPP_BRANCH }}
