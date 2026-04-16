@@ -6,6 +6,7 @@
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/vector2.hpp>
 
+#include <chrono>
 #include <memory>
 
 // Forward-declare so the header stays free of maplibre-native includes.
@@ -32,6 +33,9 @@ public:
     void set_bearing(double p_bearing);
     Vector2 geo_to_screen(double p_lat, double p_lon) const;
     Dictionary screen_to_geo(double p_x, double p_y) const;
+    void set_idle_redraw_interval_ms(int64_t p_interval_ms);
+    int64_t get_idle_redraw_interval_ms() const;
+    void request_redraw();
 
     double get_current_lat() const;
     double get_current_lon() const;
@@ -48,6 +52,7 @@ protected:
 
 private:
     void sync_runtime_size_to_control();
+    void mark_redraw_requested(int64_t p_continuous_boost_ms = 0);
 
     String style_url = "https://demotiles.maplibre.org/style.json";
     double current_lat     = 0.0;
@@ -61,6 +66,10 @@ private:
     int64_t last_render_ms_ = 0;
     uint32_t render_width_  = 0;
     uint32_t render_height_ = 0;
+    int64_t idle_redraw_interval_ms_ = 0;
+    bool redraw_requested_ = true;
+    std::chrono::steady_clock::time_point last_tick_at_{};
+    std::chrono::steady_clock::time_point continuous_redraw_until_{};
 };
 
 } // namespace godot

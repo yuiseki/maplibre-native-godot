@@ -23,6 +23,19 @@ void MapLibreMap::sync_runtime_size_to_control() {
         render_width_ = w;
         render_height_ = h;
         runtime_->resize(w, h);
+        mark_redraw_requested(250);
+    }
+}
+
+void MapLibreMap::mark_redraw_requested(int64_t p_continuous_boost_ms) {
+    redraw_requested_ = true;
+    if (p_continuous_boost_ms <= 0) {
+        return;
+    }
+    const auto now = std::chrono::steady_clock::now();
+    const auto requested_until = now + std::chrono::milliseconds(p_continuous_boost_ms);
+    if (requested_until > continuous_redraw_until_) {
+        continuous_redraw_until_ = requested_until;
     }
 }
 
@@ -50,6 +63,9 @@ void MapLibreMap::_bind_methods() {
     ClassDB::bind_method(D_METHOD("set_bearing", "bearing"), &MapLibreMap::set_bearing);
     ClassDB::bind_method(D_METHOD("geo_to_screen", "lat", "lon"), &MapLibreMap::geo_to_screen);
     ClassDB::bind_method(D_METHOD("screen_to_geo", "x", "y"), &MapLibreMap::screen_to_geo);
+    ClassDB::bind_method(D_METHOD("set_idle_redraw_interval_ms", "interval_ms"), &MapLibreMap::set_idle_redraw_interval_ms);
+    ClassDB::bind_method(D_METHOD("get_idle_redraw_interval_ms"), &MapLibreMap::get_idle_redraw_interval_ms);
+    ClassDB::bind_method(D_METHOD("request_redraw"), &MapLibreMap::request_redraw);
     ClassDB::bind_method(D_METHOD("get_current_lat"),     &MapLibreMap::get_current_lat);
     ClassDB::bind_method(D_METHOD("get_current_lon"),     &MapLibreMap::get_current_lon);
     ClassDB::bind_method(D_METHOD("get_current_zoom"),    &MapLibreMap::get_current_zoom);
@@ -67,8 +83,10 @@ void MapLibreMap::_bind_methods() {
 
 void MapLibreMap::set_style_url(const String& p_style_url) {
     style_url = p_style_url;
-    if (runtime_)
+    if (runtime_) {
         runtime_->set_style_url(std::string(p_style_url.utf8().get_data()));
+        mark_redraw_requested(750);
+    }
 }
 
 String MapLibreMap::get_style_url() const {
@@ -84,8 +102,10 @@ void MapLibreMap::fly_to(double p_lat, double p_lon, double p_zoom) {
     current_lat  = p_lat;
     current_lon  = p_lon;
     current_zoom = p_zoom;
-    if (runtime_)
+    if (runtime_) {
         runtime_->fly_to(p_lat, p_lon, p_zoom, prev_zoom);
+        mark_redraw_requested(3000);
+    }
 }
 
 void MapLibreMap::jump_to(double p_lat, double p_lon, double p_zoom,
@@ -95,20 +115,39 @@ void MapLibreMap::jump_to(double p_lat, double p_lon, double p_zoom,
     current_zoom    = p_zoom;
     current_bearing = p_bearing;
     current_pitch   = p_pitch;
-    if (runtime_)
+    if (runtime_) {
         runtime_->jump_to(p_lat, p_lon, p_zoom, p_bearing, p_pitch);
+        mark_redraw_requested(350);
+    }
 }
 
 void MapLibreMap::set_pitch(double p_pitch) {
     current_pitch = p_pitch;
-    if (runtime_)
+    if (runtime_) {
         runtime_->set_pitch(p_pitch);
+        mark_redraw_requested(350);
+    }
 }
 
 void MapLibreMap::set_bearing(double p_bearing) {
     current_bearing = p_bearing;
-    if (runtime_)
+    if (runtime_) {
         runtime_->set_bearing(p_bearing);
+        mark_redraw_requested(350);
+    }
+}
+
+void MapLibreMap::set_idle_redraw_interval_ms(int64_t p_interval_ms) {
+    idle_redraw_interval_ms_ = p_interval_ms > 0 ? p_interval_ms : 0;
+    mark_redraw_requested();
+}
+
+int64_t MapLibreMap::get_idle_redraw_interval_ms() const {
+    return idle_redraw_interval_ms_;
+}
+
+void MapLibreMap::request_redraw() {
+    mark_redraw_requested();
 }
 
 Vector2 MapLibreMap::geo_to_screen(double p_lat, double p_lon) const {
@@ -175,6 +214,10 @@ void MapLibreMap::_notification(int p_what) {
         runtime_->set_style_url(std::string(style_url.utf8().get_data()));
         runtime_->jump_to(current_lat, current_lon, current_zoom,
                           current_bearing, current_pitch);
+        const auto now = std::chrono::steady_clock::now();
+        last_tick_at_ = now;
+        continuous_redraw_until_ = now + std::chrono::milliseconds(500);
+        redraw_requested_ = true;
         set_process(true);
         UtilityFunctions::print("MapLibreMap: ready - _process loop started");
         return;
@@ -182,11 +225,25 @@ void MapLibreMap::_notification(int p_what) {
 
     if (p_what == Node::NOTIFICATION_PROCESS) {
         sync_runtime_size_to_control();
+        const auto now = std::chrono::steady_clock::now();
+        const bool in_continuous_window = now < continuous_redraw_until_;
+        const bool interval_disabled = idle_redraw_interval_ms_ <= 0;
+        bool interval_elapsed = true;
+        if (!interval_disabled) {
+            interval_elapsed =
+                std::chrono::duration_cast<std::chrono::milliseconds>(now - last_tick_at_).count()
+                >= idle_redraw_interval_ms_;
+        }
+        if (!redraw_requested_ && !in_continuous_window && !interval_disabled && !interval_elapsed) {
+            return;
+        }
 
         using Clock = std::chrono::steady_clock;
         const auto t0 = Clock::now();
 
         const auto result = runtime_->tick();
+        last_tick_at_ = now;
+        redraw_requested_ = false;
 
         const auto tick_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
             Clock::now() - t0).count();
