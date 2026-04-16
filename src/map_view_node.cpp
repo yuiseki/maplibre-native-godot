@@ -34,6 +34,8 @@ void MapLibreMap::_bind_methods() {
                          &MapLibreMap::jump_to);
     ClassDB::bind_method(D_METHOD("set_pitch",   "pitch"),   &MapLibreMap::set_pitch);
     ClassDB::bind_method(D_METHOD("set_bearing", "bearing"), &MapLibreMap::set_bearing);
+    ClassDB::bind_method(D_METHOD("geo_to_screen", "lat", "lon"), &MapLibreMap::geo_to_screen);
+    ClassDB::bind_method(D_METHOD("screen_to_geo", "x", "y"), &MapLibreMap::screen_to_geo);
     ClassDB::bind_method(D_METHOD("get_current_lat"),     &MapLibreMap::get_current_lat);
     ClassDB::bind_method(D_METHOD("get_current_lon"),     &MapLibreMap::get_current_lon);
     ClassDB::bind_method(D_METHOD("get_current_zoom"),    &MapLibreMap::get_current_zoom);
@@ -93,6 +95,28 @@ void MapLibreMap::set_bearing(double p_bearing) {
     current_bearing = p_bearing;
     if (runtime_)
         runtime_->set_bearing(p_bearing);
+}
+
+Vector2 MapLibreMap::geo_to_screen(double p_lat, double p_lon) const {
+    if (!runtime_) {
+        return Vector2();
+    }
+    const auto point = runtime_->geo_to_screen(p_lat, p_lon);
+    return Vector2(point.x, point.y);
+}
+
+Dictionary MapLibreMap::screen_to_geo(double p_x, double p_y) const {
+    Dictionary result;
+    if (!runtime_) {
+        result["lat"] = 0.0;
+        result["lon"] = 0.0;
+        return result;
+    }
+
+    const auto point = runtime_->screen_to_geo(p_x, p_y);
+    result["lat"] = point.lat;
+    result["lon"] = point.lon;
+    return result;
 }
 
 double MapLibreMap::get_current_lat()     const { return current_lat; }

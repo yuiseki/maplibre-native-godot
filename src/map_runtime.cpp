@@ -234,4 +234,14 @@ void MapRuntime::resize(uint32_t w, uint32_t h) {
     impl_->map.setSize(mbgl::Size{w, h});
 }
 
+ScreenPoint MapRuntime::geo_to_screen(double lat, double lon) const {
+    const auto point = impl_->map.pixelForLatLng(mbgl::LatLng{lat, lon});
+    return ScreenPoint{point.x, point.y};
+}
+
+GeoPoint MapRuntime::screen_to_geo(double x, double y) const {
+    const auto lat_lng = impl_->map.latLngForPixel(mbgl::ScreenCoordinate{x, y});
+    return GeoPoint{lat_lng.latitude(), lat_lng.longitude()};
+}
+
 } // namespace maplibre_godot

@@ -28,7 +28,7 @@ into a [Godot 4](https://godotengine.org/) project.
 - Implements smooth fly_to animations (2.5 s ease-in-out arc with zoom-out,
   ported from [maplibre-native-slint](https://github.com/maplibre/maplibre-native-slint)).
 - GDScript API: `set_style_url`, `fly_to`, `jump_to`, `set_pitch`, `set_bearing`,
-  `get_current_zoom`, `get_last_render_ms`.
+  `geo_to_screen`, `screen_to_geo`, `get_current_zoom`, `get_last_render_ms`.
 - Demo scene: style picker, Paris / New York / Tokyo buttons, pitch slider,
   bearing slider, FPS benchmark.
 - Ships as a self-contained Godot addon under `addons/maplibre_native_godot/`

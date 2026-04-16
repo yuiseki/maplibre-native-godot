@@ -2,7 +2,9 @@
 
 #include <godot_cpp/classes/texture_rect.hpp>
 #include <godot_cpp/core/class_db.hpp>
+#include <godot_cpp/variant/dictionary.hpp>
 #include <godot_cpp/variant/string.hpp>
+#include <godot_cpp/variant/vector2.hpp>
 
 #include <memory>
 
@@ -28,6 +30,8 @@ public:
                  double p_bearing = 0.0, double p_pitch = 0.0);
     void set_pitch(double p_pitch);
     void set_bearing(double p_bearing);
+    Vector2 geo_to_screen(double p_lat, double p_lon) const;
+    Dictionary screen_to_geo(double p_x, double p_y) const;
 
     double get_current_lat() const;
     double get_current_lon() const;

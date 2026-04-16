@@ -7,6 +7,16 @@
 
 namespace maplibre_godot {
 
+struct ScreenPoint {
+    double x = 0.0;
+    double y = 0.0;
+};
+
+struct GeoPoint {
+    double lat = 0.0;
+    double lon = 0.0;
+};
+
 struct RenderResult {
     std::vector<uint8_t> pixels; // RGBA, straight alpha (unpremultiplied)
     uint32_t width   = 0;
@@ -47,6 +57,10 @@ public:
 
     // --- Resize render target ---
     void resize(uint32_t width, uint32_t height);
+
+    // --- Projection helpers ---
+    ScreenPoint geo_to_screen(double lat, double lon) const;
+    GeoPoint screen_to_geo(double x, double y) const;
 
 private:
     struct Impl;
