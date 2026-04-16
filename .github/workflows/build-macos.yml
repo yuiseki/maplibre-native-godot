@@ -35,7 +35,7 @@ jobs:
 
       - name: Cache maplibre-native build
         id: cache-mln
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             build/maplibre-native-macos
@@ -57,7 +57,7 @@ jobs:
 
       - name: Cache godot-cpp build
         id: cache-godot-cpp
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: build/godot-extension-macos/godot-cpp
           key: godot-cpp-macos-${{ env.GODOT_CPP_BRANCH }}-RelWithDebInfo
