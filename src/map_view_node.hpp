@@ -47,6 +47,8 @@ protected:
     static void _bind_methods();
 
 private:
+    void sync_runtime_size_to_control();
+
     String style_url = "https://demotiles.maplibre.org/style.json";
     double current_lat     = 0.0;
     double current_lon     = 0.0;

@@ -12,6 +12,20 @@
 
 namespace godot {
 
+void MapLibreMap::sync_runtime_size_to_control() {
+    if (!runtime_) {
+        return;
+    }
+    const Vector2 sz = get_size();
+    const uint32_t w = sz.x > 0 ? static_cast<uint32_t>(sz.x) : render_width_;
+    const uint32_t h = sz.y > 0 ? static_cast<uint32_t>(sz.y) : render_height_;
+    if (w != render_width_ || h != render_height_) {
+        render_width_ = w;
+        render_height_ = h;
+        runtime_->resize(w, h);
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Constructor / destructor
 // ---------------------------------------------------------------------------
@@ -101,6 +115,7 @@ Vector2 MapLibreMap::geo_to_screen(double p_lat, double p_lon) const {
     if (!runtime_) {
         return Vector2();
     }
+    const_cast<MapLibreMap*>(this)->sync_runtime_size_to_control();
     const auto point = runtime_->geo_to_screen(p_lat, p_lon);
     return Vector2(point.x, point.y);
 }
@@ -113,6 +128,7 @@ Dictionary MapLibreMap::screen_to_geo(double p_x, double p_y) const {
         return result;
     }
 
+    const_cast<MapLibreMap*>(this)->sync_runtime_size_to_control();
     const auto point = runtime_->screen_to_geo(p_x, p_y);
     result["lat"] = point.lat;
     result["lon"] = point.lon;
@@ -165,15 +181,7 @@ void MapLibreMap::_notification(int p_what) {
     }
 
     if (p_what == Node::NOTIFICATION_PROCESS) {
-        // Resize the renderer if the node's display size has changed.
-        const Vector2 sz = get_size();
-        const uint32_t w = sz.x > 0 ? static_cast<uint32_t>(sz.x) : render_width_;
-        const uint32_t h = sz.y > 0 ? static_cast<uint32_t>(sz.y) : render_height_;
-        if (w != render_width_ || h != render_height_) {
-            render_width_  = w;
-            render_height_ = h;
-            runtime_->resize(w, h);
-        }
+        sync_runtime_size_to_control();
 
         using Clock = std::chrono::steady_clock;
         const auto t0 = Clock::now();
