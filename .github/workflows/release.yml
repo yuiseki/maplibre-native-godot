@@ -104,7 +104,11 @@ jobs:
             -DMLN_BUILD_DIR=${{ github.workspace }}/build/maplibre-native-macos
           cmake --build build/godot-extension-macos --parallel
       - uses: actions/upload-artifact@v4
-        with: { name: macos-arm64, path: "addons/maplibre_native_godot/bin/*macos*" }
+        with:
+          name: macos-arm64
+          path: |
+            addons/maplibre_native_godot/bin/*macos*
+            addons/maplibre_native_godot/bin/libwgpu_native.dylib
 
   # -----------------------------------------------------------------------
   # Windows x86_64

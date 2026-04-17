@@ -12,5 +12,9 @@ linux.release.x86_64 = "res://addons/maplibre_native_godot/bin/libmaplibre_nativ
 windows.debug.x86_64   = "res://addons/maplibre_native_godot/bin/maplibre_native_godot.windows.template_release.x86_64.dll"
 windows.release.x86_64 = "res://addons/maplibre_native_godot/bin/maplibre_native_godot.windows.template_release.x86_64.dll"
 
-macos.debug.arm64   = "res://addons/maplibre_native_godot/bin/libmaplibre_native_godot.macos.template_debug.arm64.dylib"
-macos.release.arm64 = "res://addons/maplibre_native_godot/bin/libmaplibre_native_godot.macos.template_release.arm64.dylib"
+macos.debug             = "res://addons/maplibre_native_godot/bin/libmaplibre_native_godot.macos.template_debug.arm64.dylib"
+macos.debug.arm64       = "res://addons/maplibre_native_godot/bin/libmaplibre_native_godot.macos.template_debug.arm64.dylib"
+macos.debug.universal   = "res://addons/maplibre_native_godot/bin/libmaplibre_native_godot.macos.template_debug.arm64.dylib"
+macos.release           = "res://addons/maplibre_native_godot/bin/libmaplibre_native_godot.macos.template_release.arm64.dylib"
+macos.release.arm64     = "res://addons/maplibre_native_godot/bin/libmaplibre_native_godot.macos.template_release.arm64.dylib"
+macos.release.universal = "res://addons/maplibre_native_godot/bin/libmaplibre_native_godot.macos.template_release.arm64.dylib"
