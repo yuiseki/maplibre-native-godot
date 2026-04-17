@@ -96,7 +96,7 @@ jobs:
           file addons/maplibre_native_godot/bin/*.dylib
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: macos-arm64
           path: |

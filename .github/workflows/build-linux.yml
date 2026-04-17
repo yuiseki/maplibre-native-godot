@@ -102,7 +102,7 @@ jobs:
           file addons/maplibre_native_godot/bin/*.so
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: linux-x86_64
           path: addons/maplibre_native_godot/bin/*linux*
