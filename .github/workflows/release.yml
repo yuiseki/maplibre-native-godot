@@ -16,14 +16,14 @@ jobs:
   build-linux:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - run: |
           sudo apt-get update
           sudo apt-get install -y cmake ninja-build python3 \
             libssl-dev libcurl4-openssl-dev libuv1-dev \
             libpng-dev libjpeg-dev libwebp-dev libbz2-dev zlib1g-dev \
             libicu-dev libgl1-mesa-dev libvulkan-dev
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with: { repository: "${{ env.MLN_REPO }}", ref: "${{ env.MLN_BRANCH }}", path: maplibre-native, submodules: recursive }
       - id: mln-sha
         run: echo "sha=$(git -C maplibre-native rev-parse HEAD)" >> "$GITHUB_OUTPUT"
@@ -36,7 +36,7 @@ jobs:
           key: mln-linux-${{ steps.mln-sha.outputs.sha }}
       - uses: dtolnay/rust-toolchain@stable
         if: steps.cache-mln.outputs.cache-hit != 'true'
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with: { repository: godotengine/godot-cpp, ref: "${{ env.GODOT_CPP_BRANCH }}", path: third_party/godot-cpp, submodules: true }
       - uses: actions/cache@v5
         with: { path: build/godot-extension-linux/godot-cpp, key: "godot-cpp-linux-${{ env.GODOT_CPP_BRANCH }}-RelWithDebInfo" }
@@ -66,9 +66,9 @@ jobs:
   build-macos:
     runs-on: macos-26
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - run: brew install cmake ninja pkg-config libuv
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with: { repository: "${{ env.MLN_REPO }}", ref: "${{ env.MLN_BRANCH }}", path: maplibre-native, submodules: recursive }
       - id: mln-sha
         run: echo "sha=$(git -C maplibre-native rev-parse HEAD)" >> "$GITHUB_OUTPUT"
@@ -82,7 +82,7 @@ jobs:
           key: mln-macos-${{ steps.mln-sha.outputs.sha }}
       - uses: dtolnay/rust-toolchain@stable
         if: steps.cache-mln.outputs.cache-hit != 'true'
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with: { repository: godotengine/godot-cpp, ref: "${{ env.GODOT_CPP_BRANCH }}", path: third_party/godot-cpp, submodules: true }
       - uses: actions/cache@v5
         with: { path: build/godot-extension-macos/godot-cpp, key: "godot-cpp-macos-${{ env.GODOT_CPP_BRANCH }}-RelWithDebInfo" }
@@ -117,11 +117,11 @@ jobs:
     runs-on: windows-latest
     steps:
       - run: git config --system core.longpaths true
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ilammy/msvc-dev-cmd@v1
         with: { arch: x64 }
       - run: choco install ninja
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with: { repository: "${{ env.MLN_REPO }}", ref: "${{ env.MLN_BRANCH }}", path: maplibre-native, submodules: recursive }
       - id: mln-sha
         shell: bash
@@ -144,7 +144,7 @@ jobs:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with: { repository: godotengine/godot-cpp, ref: "${{ env.GODOT_CPP_BRANCH }}", path: third_party/godot-cpp, submodules: true }
       - uses: actions/cache@v5
         with: { path: build/godot-extension-windows/godot-cpp, key: "godot-cpp-windows-${{ env.GODOT_CPP_BRANCH }}-Release" }
@@ -198,7 +198,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
