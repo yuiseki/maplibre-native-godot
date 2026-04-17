@@ -27,7 +27,7 @@ jobs:
         with: { repository: "${{ env.MLN_REPO }}", ref: "${{ env.MLN_BRANCH }}", path: maplibre-native, submodules: recursive }
       - id: mln-sha
         run: echo "sha=$(git -C maplibre-native rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         id: cache-mln
         with:
           path: |
@@ -38,7 +38,7 @@ jobs:
         if: steps.cache-mln.outputs.cache-hit != 'true'
       - uses: actions/checkout@v4
         with: { repository: godotengine/godot-cpp, ref: "${{ env.GODOT_CPP_BRANCH }}", path: third_party/godot-cpp, submodules: true }
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with: { path: build/godot-extension-linux/godot-cpp, key: "godot-cpp-linux-${{ env.GODOT_CPP_BRANCH }}-RelWithDebInfo" }
       - name: Build maplibre-native
         if: steps.cache-mln.outputs.cache-hit != 'true'
@@ -72,7 +72,7 @@ jobs:
         with: { repository: "${{ env.MLN_REPO }}", ref: "${{ env.MLN_BRANCH }}", path: maplibre-native, submodules: recursive }
       - id: mln-sha
         run: echo "sha=$(git -C maplibre-native rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         id: cache-mln
         with:
           path: |
@@ -84,7 +84,7 @@ jobs:
         if: steps.cache-mln.outputs.cache-hit != 'true'
       - uses: actions/checkout@v4
         with: { repository: godotengine/godot-cpp, ref: "${{ env.GODOT_CPP_BRANCH }}", path: third_party/godot-cpp, submodules: true }
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with: { path: build/godot-extension-macos/godot-cpp, key: "godot-cpp-macos-${{ env.GODOT_CPP_BRANCH }}-RelWithDebInfo" }
       - name: Build maplibre-native
         if: steps.cache-mln.outputs.cache-hit != 'true'
@@ -126,7 +126,7 @@ jobs:
       - id: mln-sha
         shell: bash
         run: echo "sha=$(git -C maplibre-native rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         id: cache-mln
         with:
           path: |
@@ -146,7 +146,7 @@ jobs:
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
       - uses: actions/checkout@v4
         with: { repository: godotengine/godot-cpp, ref: "${{ env.GODOT_CPP_BRANCH }}", path: third_party/godot-cpp, submodules: true }
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with: { path: build/godot-extension-windows/godot-cpp, key: "godot-cpp-windows-${{ env.GODOT_CPP_BRANCH }}-Release" }
       - name: Build maplibre-native
         if: steps.cache-mln.outputs.cache-hit != 'true'
