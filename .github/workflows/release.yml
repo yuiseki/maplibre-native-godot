@@ -182,6 +182,10 @@ jobs:
             -DMLN_BUILD_DIR="${{ github.workspace }}/build/maplibre-native-windows" `
             "-DCMAKE_CXX_FLAGS_DEBUG=/MDd /Zi /Ob0 /Od /RTC1"
           cmake --build build/godot-extension-windows --parallel
+
+      - name: Validate GDExtension metadata
+        run: |
+          python scripts/verify_release_package.py --gdextension addons/maplibre_native_godot/maplibre_native_godot.gdextension
       - uses: actions/upload-artifact@v7
         with:
           name: windows-x86_64
@@ -213,6 +217,10 @@ jobs:
         run: ./scripts/package_release.sh
         env:
           VERSION: ${{ github.ref_name }}
+
+      - name: Validate packaged release zip
+        run: |
+          python3 scripts/verify_release_package.py --zip dist/maplibre-native-godot-${GITHUB_REF_NAME}.zip
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3

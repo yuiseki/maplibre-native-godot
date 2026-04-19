@@ -18,3 +18,12 @@ macos.debug.universal   = "res://addons/maplibre_native_godot/bin/libmaplibre_na
 macos.release           = "res://addons/maplibre_native_godot/bin/libmaplibre_native_godot.macos.template_release.arm64.dylib"
 macos.release.arm64     = "res://addons/maplibre_native_godot/bin/libmaplibre_native_godot.macos.template_release.arm64.dylib"
 macos.release.universal = "res://addons/maplibre_native_godot/bin/libmaplibre_native_godot.macos.template_release.arm64.dylib"
+
+[dependencies]
+
+windows.debug.x86_64 = {
+    "res://addons/maplibre_native_godot/bin/wgpu_native.dll" : ""
+}
+windows.release.x86_64 = {
+    "res://addons/maplibre_native_godot/bin/wgpu_native.dll" : ""
+}

@@ -163,6 +163,49 @@ jobs:
             "-DCMAKE_CXX_FLAGS_DEBUG=/MDd /Zi /Ob0 /Od /RTC1"
           cmake --build build/godot-extension-windows --parallel
 
+      - name: Validate GDExtension metadata
+        run: |
+          python scripts/verify_release_package.py --gdextension addons/maplibre_native_godot/maplibre_native_godot.gdextension
+
+      - name: Download Godot and export templates
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path tools, build/export/windows | Out-Null
+          $godotVersion = "4.6.2-stable"
+          $editorZip = "tools/Godot_v${godotVersion}_win64.exe.zip"
+          $templatesTpz = "tools/Godot_v${godotVersion}_export_templates.tpz"
+          Invoke-WebRequest -Uri "https://github.com/godotengine/godot/releases/download/${godotVersion}/Godot_v${godotVersion}_win64.exe.zip" -OutFile $editorZip
+          Invoke-WebRequest -Uri "https://github.com/godotengine/godot/releases/download/${godotVersion}/Godot_v${godotVersion}_export_templates.tpz" -OutFile $templatesTpz
+          Expand-Archive -LiteralPath $editorZip -DestinationPath tools/godot -Force
+          $templateDir = Join-Path $env:APPDATA "Godot/export_templates/$($godotVersion.Replace('-', '.'))"
+          New-Item -ItemType Directory -Force -Path $templateDir | Out-Null
+          Copy-Item $templatesTpz "$templatesTpz.zip" -Force
+          Expand-Archive -LiteralPath "$templatesTpz.zip" -DestinationPath $templateDir -Force
+          $nestedTemplateDir = Join-Path $templateDir "templates"
+          if (Test-Path $nestedTemplateDir) {
+            Get-ChildItem $nestedTemplateDir | Move-Item -Destination $templateDir -Force
+            Remove-Item $nestedTemplateDir -Recurse -Force
+          }
+
+      - name: Export demo project with Godot
+        shell: pwsh
+        run: |
+          $consoleExePath = "tools/godot/Godot_v4.6.2-stable_win64_console.exe"
+          $guiExePath = "tools/godot/Godot_v4.6.2-stable_win64.exe"
+          if (Test-Path $consoleExePath) {
+            $godotExe = Resolve-Path $consoleExePath
+          } else {
+            $godotExe = Resolve-Path $guiExePath
+          }
+          $outputExe = Join-Path $env:GITHUB_WORKSPACE "build/export/windows/maplibre-native-godot-demo.exe"
+          & $godotExe --headless --verbose --path $env:GITHUB_WORKSPACE --export-release "Windows Desktop" $outputExe
+          Write-Host "exported windows directory contents:"
+          Get-ChildItem build/export/windows -Force | Format-Table -AutoSize
+
+      - name: Validate exported demo contents
+        run: |
+          python scripts/verify_release_package.py --export-dir build/export/windows
+
       - name: Verify built binaries
         run: Get-ChildItem addons/maplibre_native_godot/bin/ -Filter *.dll
 

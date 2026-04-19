@@ -9,6 +9,20 @@ due to vcpkg, MSVC, and maplibre-native's own build system interactions.
 The Windows CI build passes as of commit 4266d80. This document captures what we
 learned to avoid repeating failed approaches.
 
+The CI now also treats Windows packaging/export as part of the contract:
+
+1. the tracked `.gdextension` file must declare `wgpu_native.dll` in its
+   `[dependencies]` section for Windows
+2. the Windows build workflow must be able to export the demo project with
+   Godot
+3. that export output must contain `wgpu_native.dll`
+4. the release ZIP must contain both `wgpu_native.dll` and the dependency-aware
+   `.gdextension` file
+
+This closes the failure mode where the addon works in the editor but a Godot
+exported game boots with a blank map because the runtime DLL was not copied next
+to the exported executable.
+
 ---
 
 ## maplibre-native uses its own internal vcpkg
