@@ -216,4 +216,7 @@ jobs:
           path: |
             addons/maplibre_native_godot/bin/*windows*
             addons/maplibre_native_godot/bin/wgpu_native.dll
+            addons/maplibre_native_godot/bin/libpng16.dll
+            addons/maplibre_native_godot/bin/uv.dll
+            addons/maplibre_native_godot/bin/zlib1.dll
           retention-days: 7

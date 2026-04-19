@@ -16,12 +16,18 @@ REQUIRED_RELEASE_FILES = [
     "addons/maplibre_native_godot/maplibre_native_godot.gdextension",
     "addons/maplibre_native_godot/bin/maplibre_native_godot.windows.template_release.x86_64.dll",
     "addons/maplibre_native_godot/bin/wgpu_native.dll",
+    "addons/maplibre_native_godot/bin/libpng16.dll",
+    "addons/maplibre_native_godot/bin/uv.dll",
+    "addons/maplibre_native_godot/bin/zlib1.dll",
 ]
 REQUIRED_EXPORT_FILES = [
     "maplibre-native-godot-demo.exe",
     "maplibre-native-godot-demo.pck",
     "maplibre_native_godot.windows.template_release.x86_64.dll",
     "wgpu_native.dll",
+    "libpng16.dll",
+    "uv.dll",
+    "zlib1.dll",
 ]
 
 

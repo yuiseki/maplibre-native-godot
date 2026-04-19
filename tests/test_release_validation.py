@@ -96,6 +96,18 @@ class ReleaseValidationTests(unittest.TestCase):
                     "addons/maplibre_native_godot/bin/wgpu_native.dll",
                     b"wgpu",
                 )
+                archive.writestr(
+                    "addons/maplibre_native_godot/bin/libpng16.dll",
+                    b"png",
+                )
+                archive.writestr(
+                    "addons/maplibre_native_godot/bin/uv.dll",
+                    b"uv",
+                )
+                archive.writestr(
+                    "addons/maplibre_native_godot/bin/zlib1.dll",
+                    b"zlib",
+                )
             validate_release_zip(zip_path)
 
     def test_validate_export_directory_checks_runtime_dependency(self) -> None:
@@ -107,6 +119,9 @@ class ReleaseValidationTests(unittest.TestCase):
                 export_dir / "maplibre_native_godot.windows.template_release.x86_64.dll"
             ).write_bytes(b"dll")
             (export_dir / "wgpu_native.dll").write_bytes(b"wgpu")
+            (export_dir / "libpng16.dll").write_bytes(b"png")
+            (export_dir / "uv.dll").write_bytes(b"uv")
+            (export_dir / "zlib1.dll").write_bytes(b"zlib")
             validate_export_directory(export_dir)
 
     def test_validate_export_directory_rejects_missing_wgpu_runtime(self) -> None:
