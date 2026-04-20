@@ -163,13 +163,9 @@ jobs:
             -DMLN_WITH_GLFW=OFF -DMLN_WITH_QT=OFF -DMLN_WITH_TESTS=OFF `
             -DMLN_WITH_BENCHMARKS=OFF -DMLN_WITH_RENDER_TESTS=OFF
           cmake --build build/maplibre-native-windows --target mbgl-core --parallel
-      - name: Install GDExtension vcpkg dependencies
-        run: |
-          & "$env:VCPKG_INSTALLATION_ROOT\vcpkg.exe" install `
-            dlfcn-win32:x64-windows `
-            libuv:x64-windows `
-            libpng:x64-windows `
-            zlib:x64-windows
+      # All GDExtension vcpkg dependencies are already installed by
+      # maplibre-native's internal vcpkg with its custom static x64-windows
+      # triplet. See build-windows.yml for the full rationale.
       - name: Build GDExtension
         run: |
           cmake -S . `
@@ -177,7 +173,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release `
             -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" `
             -DVCPKG_TARGET_TRIPLET=x64-windows -DVCPKG_MANIFEST_MODE=OFF `
-            "-DCMAKE_PREFIX_PATH=${{ github.workspace }}/maplibre-native/platform/windows/vendor/vcpkg/installed/x64-windows;$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows" `
+            "-DCMAKE_PREFIX_PATH=${{ github.workspace }}/maplibre-native/platform/windows/vendor/vcpkg/installed/x64-windows" `
             -DMLN_SOURCE_DIR="${{ github.workspace }}/maplibre-native" `
             -DMLN_BUILD_DIR="${{ github.workspace }}/build/maplibre-native-windows" `
             "-DCMAKE_CXX_FLAGS_DEBUG=/MDd /Zi /Ob0 /Od /RTC1"
@@ -192,9 +188,6 @@ jobs:
           path: |
             addons/maplibre_native_godot/bin/*windows*
             addons/maplibre_native_godot/bin/wgpu_native.dll
-            addons/maplibre_native_godot/bin/libpng16.dll
-            addons/maplibre_native_godot/bin/uv.dll
-            addons/maplibre_native_godot/bin/zlib1.dll
 
   # -----------------------------------------------------------------------
   # Package all platforms and create GitHub Release
