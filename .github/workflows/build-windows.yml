@@ -136,17 +136,17 @@ jobs:
             Write-Host "MapboxCoreTargets.cmake not found"
           }
 
-      # dlfcn-win32, libuv, libpng, zlib are GDExtension-only deps not pulled
-      # in by maplibre-native. ICU is intentionally excluded: maplibre-native's
-      # own vcpkg installs ICU 74 (matching mbgl-core.lib); running
-      # 'vcpkg install icu' would upgrade it to a newer version causing LNK2019.
-      - name: Install GDExtension vcpkg dependencies
-        run: |
-          & "$env:VCPKG_INSTALLATION_ROOT\vcpkg.exe" install `
-            dlfcn-win32:x64-windows `
-            libuv:x64-windows `
-            libpng:x64-windows `
-            zlib:x64-windows
+      # All GDExtension vcpkg dependencies (libpng, libuv, zlib, dlfcn-win32,
+      # libwebp, ICU, etc.) are already installed by maplibre-native's internal
+      # vcpkg with the custom x64-windows triplet that forces
+      # VCPKG_LIBRARY_LINKAGE=static. Do NOT vcpkg install them separately via
+      # the runner's default x64-windows triplet: that pulls in DYNAMIC versions
+      # (libpng16.dll, uv.dll), and the resulting addon DLL imports those DLLs
+      # dynamically. Godot's exported game process cannot load the addon in
+      # that configuration (Error 1114: DLL init failed), because something in
+      # the interaction between Godot's CRT, libpng16's/uv's DllMain, and
+      # maplibre-native's static init breaks. Linking everything statically
+      # via the internal vcpkg avoids the problem entirely.
 
       - name: Build GDExtension (Release)
         run: |
@@ -157,7 +157,7 @@ jobs:
             -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" `
             -DVCPKG_TARGET_TRIPLET=x64-windows `
             -DVCPKG_MANIFEST_MODE=OFF `
-            "-DCMAKE_PREFIX_PATH=${{ github.workspace }}/maplibre-native/platform/windows/vendor/vcpkg/installed/x64-windows;$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows" `
+            "-DCMAKE_PREFIX_PATH=${{ github.workspace }}/maplibre-native/platform/windows/vendor/vcpkg/installed/x64-windows" `
             -DMLN_SOURCE_DIR="${{ github.workspace }}/maplibre-native" `
             -DMLN_BUILD_DIR="${{ github.workspace }}/build/maplibre-native-windows" `
             "-DCMAKE_CXX_FLAGS_DEBUG=/MDd /Zi /Ob0 /Od /RTC1"
