@@ -2,9 +2,10 @@ name: Build Windows x86_64
 
 on:
   push:
-    branches: [main]
+    branches: [main, "experiment/**"]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 env:
   MLN_REPO: maplibre/maplibre-native
