@@ -211,6 +211,7 @@ jobs:
         run: Get-ChildItem addons/maplibre_native_godot/bin/ -Filter *.dll
 
       - name: Upload artifact
+        if: always()
         uses: actions/upload-artifact@v7
         with:
           name: windows-x86_64
@@ -221,3 +222,4 @@ jobs:
             addons/maplibre_native_godot/bin/uv.dll
             addons/maplibre_native_godot/bin/zlib1.dll
           retention-days: 7
+          if-no-files-found: warn
