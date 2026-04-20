@@ -177,33 +177,14 @@ if(WIN32)
     mbgl-core
   )
 
-  function(copy_windows_runtime_dll dll_name search_roots)
-    set(_dll_path "")
-    foreach(_root IN LISTS search_roots)
-      if(NOT _root)
-        continue()
-      endif()
-      if(EXISTS "${_root}/bin/${dll_name}")
-        set(_dll_path "${_root}/bin/${dll_name}")
-        break()
-      endif()
-    endforeach()
-
-    if(EXISTS "${_dll_path}")
-      add_custom_command(TARGET maplibre_native_godot POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-          "${_dll_path}"
-          "${MAPLIBRE_NATIVE_GODOT_BIN_DIR}/${dll_name}"
-        COMMENT "Copying ${dll_name} to bin/")
-    else()
-      message(WARNING
-        "${dll_name} was not found in the configured Windows runtime search roots.\n"
-        "Expected one of: ${search_roots}\n"
-        "Copy it manually to bin/ before packaging a release.")
-    endif()
-  endfunction()
-
-  # Copy wgpu_native.dll to bin/ so Godot can find it at runtime
+  # maplibre-native's internal vcpkg uses a custom x64-windows triplet that
+  # links vcpkg libraries statically (VCPKG_LIBRARY_LINKAGE=static). libpng,
+  # libuv, zlib, libwebp, dlfcn-win32, ICU etc. are therefore baked into
+  # mbgl-core.lib and into this addon DLL — no accompanying DLLs are needed.
+  #
+  # The only runtime DLL dependency is wgpu_native.dll (Rust-built, always
+  # shipped as a shared library). Copy it next to the addon DLL so Godot
+  # can find it at runtime.
   set(_wgpu_dll "${MLN_SOURCE_DIR}/vendor/wgpu-native/target/release/wgpu_native.dll")
   if(NOT EXISTS "${_wgpu_dll}")
     # Fallback: look next to the .dll.lib import library recorded in MapboxCoreTargets
@@ -224,17 +205,6 @@ if(WIN32)
       "wgpu_native.dll not found at ${_wgpu_dll}.\n"
       "Copy it manually to bin/ before running Godot.")
   endif()
-
-  set(_windows_runtime_roots
-    "${MLN_SOURCE_DIR}/platform/windows/vendor/vcpkg/installed/x64-windows"
-  )
-  if(DEFINED ENV{VCPKG_INSTALLATION_ROOT} AND NOT "$ENV{VCPKG_INSTALLATION_ROOT}" STREQUAL "")
-    list(APPEND _windows_runtime_roots "$ENV{VCPKG_INSTALLATION_ROOT}/installed/x64-windows")
-  endif()
-
-  copy_windows_runtime_dll("libpng16.dll" "${_windows_runtime_roots}")
-  copy_windows_runtime_dll("uv.dll" "${_windows_runtime_roots}")
-  copy_windows_runtime_dll("zlib1.dll" "${_windows_runtime_roots}")
 
 elseif(APPLE)
   # macOS: link via imported CMake targets (MapboxCoreTargets.cmake).
