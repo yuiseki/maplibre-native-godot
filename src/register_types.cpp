@@ -23,16 +23,22 @@ using namespace godot;
 
 namespace {
 
-const char* kDllLogPath =
-#ifdef _WIN32
-    "C:\\Users\\yuiseki\\mlng_init.log";
-#else
-    "/tmp/mlng_init.log";
-#endif
+// Log path is relative so it lands in the process CWD (usually the exe dir for
+// Godot-exported games). CI can then "type" the file to dump it into logs.
+const char* kDllLogFile = "mlng_init.log";
 
 void log_phase(const char* phase) {
-    FILE* f = std::fopen(kDllLogPath, "a");
-    if (!f) return;
+    FILE* f = std::fopen(kDllLogFile, "a");
+    if (!f) {
+        // Fall back to a platform-specific temp location if CWD is read-only.
+#ifdef _WIN32
+        f = std::fopen("C:\\Users\\yuiseki\\mlng_init.log", "a");
+        if (!f) f = std::fopen("C:\\Windows\\Temp\\mlng_init.log", "a");
+#else
+        f = std::fopen("/tmp/mlng_init.log", "a");
+#endif
+        if (!f) return;
+    }
     std::time_t now = std::time(nullptr);
     std::fprintf(f, "[%lld] %s\n", static_cast<long long>(now), phase);
     std::fclose(f);
