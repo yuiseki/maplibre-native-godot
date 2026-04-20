@@ -27,3 +27,21 @@ windows.debug.x86_64 = {
 windows.release.x86_64 = {
     "res://addons/maplibre_native_godot/bin/wgpu_native.dll" : ""
 }
+macos.debug = {
+    "res://addons/maplibre_native_godot/bin/libwgpu_native.dylib" : "Contents/Frameworks"
+}
+macos.debug.arm64 = {
+    "res://addons/maplibre_native_godot/bin/libwgpu_native.dylib" : "Contents/Frameworks"
+}
+macos.debug.universal = {
+    "res://addons/maplibre_native_godot/bin/libwgpu_native.dylib" : "Contents/Frameworks"
+}
+macos.release = {
+    "res://addons/maplibre_native_godot/bin/libwgpu_native.dylib" : "Contents/Frameworks"
+}
+macos.release.arm64 = {
+    "res://addons/maplibre_native_godot/bin/libwgpu_native.dylib" : "Contents/Frameworks"
+}
+macos.release.universal = {
+    "res://addons/maplibre_native_godot/bin/libwgpu_native.dylib" : "Contents/Frameworks"
+}
