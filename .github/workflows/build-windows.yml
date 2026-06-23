@@ -45,7 +45,7 @@ jobs:
 
       - name: Cache maplibre-native build
         id: cache-mln
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             build/maplibre-native-windows
@@ -77,7 +77,7 @@ jobs:
 
       - name: Cache godot-cpp build
         id: cache-godot-cpp
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: build/godot-extension-windows/godot-cpp
           key: godot-cpp-windows-${{ env.GODOT_CPP_BRANCH }}-Release
