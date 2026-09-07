@@ -136,7 +136,7 @@ jobs:
             maplibre-native/vendor/wgpu-native/target/x86_64-pc-windows-msvc/release/wgpu_native.dll.lib
             maplibre-native/platform/windows/vendor/vcpkg/installed
           key: mln-windows-${{ steps.mln-sha.outputs.sha }}-v7
-      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - uses: actions-rust-lang/setup-rust-toolchain@v2
         if: steps.cache-mln.outputs.cache-hit != 'true'
       - uses: actions/github-script@v9
         if: steps.cache-mln.outputs.cache-hit != 'true'
